@@ -1,0 +1,1735 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 智慧刷卡簽單 & 收據辨識整理工具 (Google 試算表連動版)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    body {
+      font-family: 'PingFang TC', 'Microsoft JhengHei', 'Inter', -apple-system, sans-serif;
+      background: linear-gradient(135deg, #fff1f2 0%, #fee2e2 50%, #fecdd3 100%);
+      min-height: 100vh;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(254, 202, 202, 0.8);
+      box-shadow: 0 20px 25px -5px rgba(220, 38, 38, 0.07), 0 8px 10px -6px rgba(220, 38, 38, 0.05);
+    }
+    .upload-zone {
+      border: 2px dashed #f87171;
+      border-radius: 1rem;
+      transition: all 0.25s ease-in-out;
+      background: rgba(254, 242, 242, 0.5);
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: #dc2626;
+      background: #fef2f2;
+      transform: translateY(-2px);
+    }
+    .loader-ring {
+      border: 4px solid #fecaca;
+      border-top: 4px solid #dc2626;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      animation: spin 0.9s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .category-餐飲 { background: #fee2e2; color: #991b1b; }
+    .category-交通 { background: #ffedd5; color: #9a3412; }
+    .category-住宿 { background: #fef3c7; color: #92400e; }
+    .category-購物 { background: #e0e7ff; color: #3730a3; }
+    .category-日常開銷 { background: #dcfce7; color: #166534; }
+    .category-其他 { background: #f3f4f6; color: #374151; }
+    .table-select {
+      background-color: #fff;
+      border: 1px solid #fca5a5;
+      color: #991b1b;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      border-radius: 0.375rem;
+      padding: 0.25rem 0.6rem;
+      cursor: pointer;
+      outline: none;
+    }
+    .table-select:focus {
+      border-color: #dc2626;
+      ring: 2px solid #f87171;
+    }
+    .discount-tag {
+      background-color: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+    /* Modal Backdrop */
+    .modal-backdrop {
+      background-color: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+    }
+  </style>
+</head>
+<body class="p-3 sm:p-6 lg:p-8 text-slate-800">
+
+  <div class="max-w-6xl mx-auto space-y-6">
+
+    <!-- Header Section -->
+    <header class="glass-card rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-4 border-b-4 border-b-red-600">
+      <div class="flex items-center gap-4 text-center md:text-left">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-red-600 to-rose-400 text-white flex items-center justify-center text-2xl shadow-lg shadow-red-500/30 flex-shrink-0">
+          <i class="fa-solid fa-receipt"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 flex-wrap justify-center md:justify-start">
+            <h1 class="text-2xl sm:text-3xl font-black text-red-900 tracking-tight">AI 智慧刷卡簽單 & 收據整理工具</h1>
+            <span class="bg-red-100 text-red-800 text-xs font-bold px-2.5 py-0.5 rounded-full border border-red-300">V1.0 Google 試算表同步版</span>
+          </div>
+          <p class="text-red-700/80 text-sm mt-1">
+            自動 OCR 辨識日期、時間、商店、品項數量、折扣負數與金額，並換算當日即時台幣匯率，一鍵直存 Google 試算表！
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button id="toggleSettingsBtn" class="px-4 py-2 bg-white/80 hover:bg-white text-red-800 border border-red-200 rounded-xl font-medium text-sm flex items-center gap-2 shadow-sm transition hover:shadow">
+          <i class="fa-solid fa-gear text-red-500"></i>
+          <span>API & 試算表設定</span>
+          <i id="settingsChevron" class="fa-solid fa-chevron-down text-xs transition-transform duration-200"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Collapsible Settings Panel -->
+    <section id="settingsPanel" class="hidden glass-card rounded-2xl p-6 space-y-6 transition-all duration-300 border border-red-200">
+      <div class="flex items-center justify-between border-b border-red-100 pb-3">
+        <h2 class="text-lg font-bold text-red-900 flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-red-600"></i>
+          金鑰與 Google 試算表連線設定
+        </h2>
+        <span class="text-xs text-slate-500">設定會安全存於您本機瀏覽器中</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Gemini API Settings -->
+        <div class="space-y-4 bg-white/70 p-4 rounded-xl border border-red-100">
+          <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+            <i class="fa-solid fa-brain text-red-600"></i> Gemini AI 模型金鑰
+          </h3>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Gemini API Key</label>
+            <div class="relative">
+              <input type="password" id="geminiApiKey" placeholder="AIzaSy..." class="w-full pl-3 pr-10 py-2 text-sm rounded-lg border border-red-200 focus:outline-none focus:ring-2 focus:ring-red-400 bg-white">
+              <button id="toggleApiKeyVisibility" type="button" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 text-sm">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1">若無金鑰亦可使用下方「使用範例資料」快速體驗完整流程。</p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">模型選擇</label>
+            <select id="geminiModelSelect" class="w-full py-2 px-3 text-sm rounded-lg border border-red-200 focus:outline-none focus:ring-2 focus:ring-red-400 bg-white">
+              <option value="gemini-2.5-flash" selected>gemini-2.5-flash (最新推薦，高精確度 & 極速)</option>
+              <option value="gemini-1.5-flash">gemini-1.5-flash (穩定經典)</option>
+              <option value="gemini-2.0-flash">gemini-2.0-flash (次世代 Flash)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Google Sheets & Auth Settings -->
+        <div class="space-y-4 bg-white/70 p-4 rounded-xl border border-red-100">
+          <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+            <i class="fa-brands fa-google-drive text-green-600"></i> Google 試算表連線模式
+          </h3>
+
+          <!-- Method Selection Tabs -->
+          <div class="flex gap-2 p-1 bg-red-50 rounded-lg text-xs font-semibold">
+            <button id="tabMethodOAuth" class="flex-1 py-1.5 rounded-md bg-white text-red-800 shadow-sm transition">
+              Google 官方 OAuth 授權 (推薦)
+            </button>
+            <button id="tabMethodGAS" class="flex-1 py-1.5 rounded-md text-slate-600 hover:text-red-700 transition">
+              Apps Script Webhook (免 GCP 設定)
+            </button>
+          </div>
+
+          <!-- OAuth Mode Fields -->
+          <div id="methodOAuthContainer" class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Google OAuth Client ID (選填或自訂)</label>
+              <input type="text" id="googleClientId" placeholder="例如：123456...apps.googleusercontent.com" class="w-full px-3 py-2 text-xs rounded-lg border border-red-200 focus:outline-none focus:ring-2 focus:ring-red-400 bg-white">
+              <p class="text-[11px] text-slate-500 mt-1">留空時，系統支援預設或亦可透過快速 Webhook / 手動授權模式匯入。</p>
+            </div>
+            <div class="flex items-center justify-between pt-1">
+              <div id="googleAuthStatus" class="text-xs text-slate-600 flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-slate-300 inline-block" id="authIndicator"></span>
+                <span id="authStatusText">尚未連線 Google 帳號</span>
+              </div>
+              <button id="btnGoogleAuth" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-lg text-xs font-semibold flex items-center gap-2 shadow-sm transition">
+                <i class="fa-brands fa-google text-red-500"></i>
+                <span id="btnGoogleAuthText">登入 Google</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Apps Script Webhook Mode Fields -->
+          <div id="methodGASContainer" class="hidden space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Google Apps Script 網頁應用程式網址 (Web App URL)</label>
+              <input type="text" id="gasWebhookUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3 py-2 text-xs rounded-lg border border-red-200 focus:outline-none focus:ring-2 focus:ring-red-400 bg-white">
+              <p class="text-[11px] text-slate-500 mt-1">使用隨附的 <code>google_apps_script.js</code>，部署後直接貼上即可一鍵寫入！</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-2">
+        <button id="btnSaveSettings" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition shadow-sm">
+          <i class="fa-solid fa-floppy-disk mr-1.5"></i> 儲存設定
+        </button>
+      </div>
+    </section>
+
+    <!-- Main Workspace Area -->
+    <main class="space-y-6">
+
+      <!-- Upload & Preview Box -->
+      <section id="uploadSection" class="glass-card rounded-2xl p-6 sm:p-8 text-center">
+        <input type="file" id="fileInput" class="hidden" accept="image/*,application/pdf" capture="environment">
+
+        <div id="uploadBox" class="upload-zone p-8 sm:p-12 cursor-pointer">
+          <div class="flex flex-col items-center">
+            <div class="w-16 h-16 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+            <h3 class="text-lg font-bold text-red-950">點擊上傳或拖曳簽單 / 收據至此</h3>
+            <p class="text-sm text-red-700/80 mt-1.5">支援手機拍照、JPG、PNG、WebP、PDF 檔案 (建議小於 10MB)</p>
+            <div class="flex items-center gap-2 mt-4 text-xs text-slate-500">
+              <span class="inline-flex items-center gap-1 bg-white/80 px-2.5 py-1 rounded-md border border-red-100">
+                <i class="fa-solid fa-camera text-red-500"></i> 手機拍照
+              </span>
+              <span class="inline-flex items-center gap-1 bg-white/80 px-2.5 py-1 rounded-md border border-red-100">
+                <i class="fa-solid fa-percent text-red-500"></i> 自動辨識負數折扣
+              </span>
+              <span class="inline-flex items-center gap-1 bg-white/80 px-2.5 py-1 rounded-md border border-red-100">
+                <i class="fa-solid fa-calculator text-red-500"></i> 當日自動換算台幣
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Demo Button -->
+        <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <button id="btnDemoData" class="px-5 py-2.5 bg-red-100 hover:bg-red-200 text-red-800 rounded-xl font-bold text-sm inline-flex items-center gap-2 transition">
+            <i class="fa-solid fa-wand-magic-sparkles text-red-600"></i>
+            <span>載入完整範例資料 (免金鑰體驗)</span>
+          </button>
+          <span class="text-xs text-slate-400">含多項商品、中英翻譯、負數折抵優惠與外幣即時換算</span>
+        </div>
+      </section>
+
+      <!-- Processing State -->
+      <section id="processingSection" class="hidden glass-card rounded-2xl p-12 text-center">
+        <div class="loader-ring mx-auto"></div>
+        <h3 id="processingTitle" class="text-xl font-bold text-red-900 mt-6">AI 正在辨識您的簽單收據...</h3>
+        <p id="processingDetail" class="text-sm text-red-700/70 mt-2">
+          正在執行光學字元辨識、商品品項萃取、負數折扣解析及當日即時外匯換算...
+        </p>
+      </section>
+
+      <!-- Error Notification Box -->
+      <section id="errorSection" class="hidden glass-card rounded-2xl p-8 bg-red-50/90 border border-red-300 text-center">
+        <div class="w-12 h-12 mx-auto rounded-full bg-red-200 text-red-700 flex items-center justify-center text-xl mb-3">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <h3 class="text-lg font-bold text-red-900">辨識過程中遇到問題</h3>
+        <p id="errorMessage" class="text-sm text-red-700 mt-2 max-w-lg mx-auto">
+          無法完成辨識，請確認圖片是否清晰，或至設定檢查 Gemini API 金鑰。
+        </p>
+        <div class="mt-5 flex justify-center gap-3">
+          <button id="btnRetry" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold transition">
+            <i class="fa-solid fa-rotate-right mr-1"></i> 重試
+          </button>
+          <button id="btnCancelError" class="px-4 py-2 bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 rounded-xl text-sm font-medium transition">
+            返回上傳
+          </button>
+        </div>
+      </section>
+
+      <!-- Results Display Section -->
+      <section id="resultsSection" class="hidden glass-card rounded-2xl p-6 sm:p-8 space-y-6">
+
+        <!-- Top Status Bar & Exchange Rate Badge -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-red-100 pb-4">
+          <div>
+            <h2 class="text-2xl font-black text-red-900 flex items-center gap-2">
+              <i class="fa-solid fa-clipboard-check text-red-600"></i>
+              辨識與整理結果
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">
+              可於表頭獨立切換商店名稱與商品名稱之語言，並直接同步存入 Google 試算表。
+            </p>
+          </div>
+
+          <!-- Currency & Exchange Rate Info -->
+          <div class="flex items-center gap-3 bg-red-50/80 px-3.5 py-2 rounded-xl border border-red-200 text-xs">
+            <i class="fa-solid fa-arrow-trend-up text-red-600"></i>
+            <div>
+              <span class="font-bold text-red-900" id="rateStatusText">今日匯率已更新</span>
+              <span class="text-slate-500 ml-1" id="rateDetailText">(自動折算 TWD)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed Results Table -->
+        <div class="overflow-x-auto rounded-xl border border-red-200 shadow-sm bg-white">
+          <table class="min-w-full divide-y divide-red-100 text-left text-sm">
+            <thead class="bg-red-50/90 text-red-900">
+              <tr>
+                <!-- Store Column with Header Language Dropdown -->
+                <th class="px-4 py-3.5 font-bold">
+                  <div class="flex items-center gap-2">
+                    <span>商店名稱</span>
+                    <select id="headerStoreLangSelect" class="table-select text-xs" title="切換所有商店名稱的顯示語言">
+                      <option value="zh" selected>切換：繁體中文</option>
+                      <option value="original">切換：原文名稱</option>
+                    </select>
+                  </div>
+                </th>
+
+                <!-- Items Column with Header Language Dropdown -->
+                <th class="px-4 py-3.5 font-bold">
+                  <div class="flex items-center gap-2">
+                    <span>商品名稱 / 明細 (數量與單價)</span>
+                    <select id="headerItemLangSelect" class="table-select text-xs" title="切換所有商品名稱的顯示語言">
+                      <option value="zh" selected>切換：繁體中文</option>
+                      <option value="original">切換：原文名稱</option>
+                    </select>
+                  </div>
+                </th>
+
+                <th class="px-4 py-3.5 font-bold whitespace-nowrap">原幣總額</th>
+                <th class="px-4 py-3.5 font-bold whitespace-nowrap text-red-700">台幣金額 (TWD)</th>
+                <th class="px-4 py-3.5 font-bold whitespace-nowrap">日期 / 時間</th>
+                <th class="px-4 py-3.5 font-bold whitespace-nowrap">類別</th>
+                <th class="px-4 py-3.5 font-bold text-center whitespace-nowrap">操作</th>
+              </tr>
+            </thead>
+            <tbody id="resultsTableBody" class="divide-y divide-red-100 bg-white">
+              <!-- Dynamically populated rows -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Summary Totals Footer -->
+        <div class="bg-gradient-to-r from-red-50 to-rose-50 p-4 rounded-xl border border-red-200 flex flex-wrap items-center justify-between gap-4">
+          <div class="text-sm text-slate-700 flex items-center gap-4">
+            <span>共辨識 <b id="totalReceiptCount" class="text-red-700 font-bold">0</b> 筆簽單</span>
+            <span>商品總品項 <b id="totalItemCount" class="text-red-700 font-bold">0</b> 項</span>
+          </div>
+          <div class="text-right">
+            <span class="text-xs text-slate-500 mr-2">折合台幣總計:</span>
+            <span class="text-xl font-black text-red-700" id="totalTwdSum">NT$ 0</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap items-center justify-end gap-3 pt-2">
+          <button id="btnNewUpload" class="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-xl text-sm font-semibold transition">
+            <i class="fa-solid fa-arrow-up-from-bracket mr-1.5"></i> 辨識新檔案
+          </button>
+          <button id="btnExportCsv" class="px-4 py-2.5 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-xl text-sm font-bold transition">
+            <i class="fa-solid fa-file-csv mr-1.5"></i> 匯出 CSV 檔
+          </button>
+          <!-- Core Request Button: Save to Google Sheets -->
+          <button id="btnOpenSaveToSheetsModal" class="px-6 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl text-sm font-black shadow-lg shadow-green-600/25 flex items-center gap-2 transition hover:scale-102">
+            <i class="fa-solid fa-table text-lg"></i>
+            <span>轉存到 Google 試算表...</span>
+          </button>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Google Sheets Save Modal Dialog (詢問儲存目標檔案與工作表) -->
+  <div id="sheetsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full border border-red-200 overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modalContainer">
+
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-green-700 to-emerald-700 text-white p-5 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-file-excel"></i>
+          </div>
+          <div>
+            <h3 class="font-black text-lg">轉存至 Google 試算表</h3>
+            <p class="text-xs text-green-100">請指定您要儲存的目標試算表檔案與工作表</p>
+          </div>
+        </div>
+        <button id="btnCloseModal" class="text-white/80 hover:text-white p-2 rounded-lg hover:bg-white/10 text-lg transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Step-by-step Selection) -->
+      <div class="p-6 space-y-5 text-slate-800 text-sm max-h-[75vh] overflow-y-auto">
+
+        <!-- Step 1: Target Spreadsheet Selection (詢問檔案) -->
+        <div class="space-y-2 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div class="flex items-center justify-between">
+            <label class="font-bold text-slate-800 flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-green-700 text-white text-xs flex items-center justify-center font-bold">1</span>
+              <span>您要存在哪一個 Google 試算表檔案？</span>
+            </label>
+            <button id="btnRefreshDriveFiles" class="text-xs text-green-700 hover:text-green-800 font-semibold flex items-center gap-1">
+              <i class="fa-solid fa-rotate text-xs"></i> 重新整理雲端檔案
+            </button>
+          </div>
+
+          <!-- Mode Radio: Choose from List or Direct URL/ID -->
+          <div class="grid grid-cols-2 gap-2 text-xs font-semibold pt-1">
+            <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer hover:border-green-400">
+              <input type="radio" name="sheetFileSource" value="select" id="radioFileSelect" checked class="text-green-600">
+              <span>從我的 Google 試算表選取</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer hover:border-green-400">
+              <input type="radio" name="sheetFileSource" value="manual" id="radioFileManual" class="text-green-600">
+              <span>貼上試算表網址或 ID</span>
+            </label>
+          </div>
+
+          <!-- Dropdown List of Files -->
+          <div id="fileSelectContainer" class="space-y-2 pt-1">
+            <select id="targetSpreadsheetSelect" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-green-500 bg-white text-sm">
+              <option value="">載入中... 或請點擊「登入 Google」</option>
+            </select>
+            <div class="flex items-center justify-between text-xs text-slate-500">
+              <span>找不到檔案？可直接點擊右側建立新檔案</span>
+              <button id="btnCreateNewSpreadsheet" class="text-green-700 hover:text-green-800 font-bold flex items-center gap-1">
+                <i class="fa-solid fa-plus-circle"></i> 建立新的 Google 試算表
+              </button>
+            </div>
+          </div>
+
+          <!-- Manual Input of URL/ID -->
+          <div id="fileManualContainer" class="hidden space-y-2 pt-1">
+            <input type="text" id="targetSpreadsheetInput" placeholder="請貼上 Google 試算表完整連結或 ID (如 1BxiMVs0XR...)" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-green-500 bg-white text-sm">
+            <p class="text-[11px] text-slate-500">
+              例如：https://docs.google.com/spreadsheets/d/<b>1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms</b>/edit
+            </p>
+          </div>
+        </div>
+
+        <!-- Step 2: Target Worksheet / Tab Selection (詢問工作表) -->
+        <div class="space-y-2 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div class="flex items-center justify-between">
+            <label class="font-bold text-slate-800 flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-green-700 text-white text-xs flex items-center justify-center font-bold">2</span>
+              <span>您要存在哪一個工作表 (分頁)？</span>
+            </label>
+            <button id="btnRefreshTabs" class="text-xs text-green-700 hover:text-green-800 font-semibold flex items-center gap-1">
+              <i class="fa-solid fa-rotate text-xs"></i> 讀取工作表分頁
+            </button>
+          </div>
+
+          <div class="space-y-2 pt-1">
+            <select id="targetWorksheetSelect" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-green-500 bg-white text-sm">
+              <option value="Sheet1">工作表1 (Sheet1)</option>
+              <option value="__NEW__">＋ 建立新工作表分頁...</option>
+            </select>
+
+            <!-- Custom New Sheet Tab Name Input (revealed when __NEW__ is selected) -->
+            <div id="newWorksheetInputContainer" class="hidden pt-1">
+              <label class="block text-xs font-semibold text-slate-600 mb-1">新工作表分頁名稱：</label>
+              <div class="flex gap-2">
+                <input type="text" id="newWorksheetNameInput" placeholder="例如：2026年11月支出" class="flex-1 px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
+                <button id="btnAutoDateTabName" class="px-3 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg text-xs font-semibold text-slate-700 transition">
+                  當月命名
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Formatting & Field Options -->
+        <div class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <label class="font-bold text-slate-800 flex items-center gap-2">
+            <span class="w-5 h-5 rounded-full bg-green-700 text-white text-xs flex items-center justify-center font-bold">3</span>
+            <span>寫入格式與欄位偏好</span>
+          </label>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 text-xs">
+            <div>
+              <span class="font-semibold text-slate-600 block mb-1">寫入語言：</span>
+              <select id="saveLangPreference" class="w-full p-2 rounded-lg border border-slate-300 bg-white font-medium">
+                <option value="current">遵循當前表頭所選語言 (中文/原文)</option>
+                <option value="zh">固定以繁體中文寫入</option>
+                <option value="original">固定以原文名稱寫入</option>
+                <option value="both">中英雙語並列寫入</option>
+              </select>
+            </div>
+            <div>
+              <span class="font-semibold text-slate-600 block mb-1">資料展開模式：</span>
+              <select id="saveExportMode" class="w-full p-2 rounded-lg border border-slate-300 bg-white font-medium">
+                <option value="items">商品明細逐項展開 (推薦，最詳細)</option>
+                <option value="receipts">每筆簽單一行 (商品合併摘要)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 pt-2 text-xs text-slate-600">
+            <input type="checkbox" id="chkAutoHeader" checked class="rounded text-green-600 focus:ring-green-500">
+            <label for="chkAutoHeader">若目標工作表為空，自動加入標題列 (日期、時間、商店、商品、數量、金額、TWD...)</label>
+          </div>
+        </div>
+
+        <!-- Status / Feedback inside Modal -->
+        <div id="modalStatusAlert" class="hidden p-3.5 rounded-xl text-xs flex items-center gap-2">
+          <i id="modalStatusIcon" class="fa-solid fa-circle-info text-base"></i>
+          <span id="modalStatusMsg">正在準備寫入...</span>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-100 p-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200">
+        <button id="btnModalCancel" class="px-4 py-2 bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 rounded-xl text-xs font-semibold transition">
+          取消
+        </button>
+        <div class="flex items-center gap-2">
+          <a id="btnOpenSpreadsheetLink" href="#" target="_blank" class="hidden px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 開啟試算表
+          </a>
+          <button id="btnExecuteSaveToSheets" class="px-6 py-2.5 bg-green-700 hover:bg-green-800 text-white rounded-xl text-xs font-black shadow-md flex items-center gap-2 transition">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <span id="btnExecuteText">確認存入工作表</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3 px-5 py-3 rounded-xl shadow-xl text-sm font-semibold text-white bg-slate-900 border border-slate-700">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-green-400"></i>
+    <span id="toastMessage">操作成功</span>
+  </div>
+
+  <!-- Main JavaScript Logic -->
+  <script>
+    // Global State
+    let classifiedData = [];
+    let exchangeRates = { USD: 32.5, JPY: 0.21, EUR: 35.2, CNY: 4.5, HKD: 4.15, KRW: 0.024, GBP: 41.5, TWD: 1.0 };
+    let googleAccessToken = null;
+    let driveSpreadsheets = [];
+
+    // DOM Elements
+    const toggleSettingsBtn = document.getElementById('toggleSettingsBtn');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const settingsChevron = document.getElementById('settingsChevron');
+    const geminiApiKeyInput = document.getElementById('geminiApiKey');
+    const toggleApiKeyVisibility = document.getElementById('toggleApiKeyVisibility');
+    const geminiModelSelect = document.getElementById('geminiModelSelect');
+    const btnSaveSettings = document.getElementById('btnSaveSettings');
+
+    // Google Auth & Webhook Mode Elements
+    const tabMethodOAuth = document.getElementById('tabMethodOAuth');
+    const tabMethodGAS = document.getElementById('tabMethodGAS');
+    const methodOAuthContainer = document.getElementById('methodOAuthContainer');
+    const methodGASContainer = document.getElementById('methodGASContainer');
+    const googleClientIdInput = document.getElementById('googleClientId');
+    const gasWebhookUrlInput = document.getElementById('gasWebhookUrl');
+    const btnGoogleAuth = document.getElementById('btnGoogleAuth');
+    const btnGoogleAuthText = document.getElementById('btnGoogleAuthText');
+    const authIndicator = document.getElementById('authIndicator');
+    const authStatusText = document.getElementById('authStatusText');
+
+    // Upload & Results Elements
+    const uploadSection = document.getElementById('uploadSection');
+    const uploadBox = document.getElementById('uploadBox');
+    const fileInput = document.getElementById('fileInput');
+    const btnDemoData = document.getElementById('btnDemoData');
+    const processingSection = document.getElementById('processingSection');
+    const processingTitle = document.getElementById('processingTitle');
+    const processingDetail = document.getElementById('processingDetail');
+    const errorSection = document.getElementById('errorSection');
+    const errorMessage = document.getElementById('errorMessage');
+    const btnRetry = document.getElementById('btnRetry');
+    const btnCancelError = document.getElementById('btnCancelError');
+    const resultsSection = document.getElementById('resultsSection');
+    const resultsTableBody = document.getElementById('resultsTableBody');
+    const headerStoreLangSelect = document.getElementById('headerStoreLangSelect');
+    const headerItemLangSelect = document.getElementById('headerItemLangSelect');
+    const totalReceiptCount = document.getElementById('totalReceiptCount');
+    const totalItemCount = document.getElementById('totalItemCount');
+    const totalTwdSum = document.getElementById('totalTwdSum');
+    const rateStatusText = document.getElementById('rateStatusText');
+    const rateDetailText = document.getElementById('rateDetailText');
+    const btnNewUpload = document.getElementById('btnNewUpload');
+    const btnExportCsv = document.getElementById('btnExportCsv');
+
+    // Modal Elements (Google Sheets Save)
+    const sheetsModal = document.getElementById('sheetsModal');
+    const modalContainer = document.getElementById('modalContainer');
+    const btnOpenSaveToSheetsModal = document.getElementById('btnOpenSaveToSheetsModal');
+    const btnCloseModal = document.getElementById('btnCloseModal');
+    const btnModalCancel = document.getElementById('btnModalCancel');
+    const radioFileSelect = document.getElementById('radioFileSelect');
+    const radioFileManual = document.getElementById('radioFileManual');
+    const fileSelectContainer = document.getElementById('fileSelectContainer');
+    const fileManualContainer = document.getElementById('fileManualContainer');
+    const targetSpreadsheetSelect = document.getElementById('targetSpreadsheetSelect');
+    const targetSpreadsheetInput = document.getElementById('targetSpreadsheetInput');
+    const btnRefreshDriveFiles = document.getElementById('btnRefreshDriveFiles');
+    const btnCreateNewSpreadsheet = document.getElementById('btnCreateNewSpreadsheet');
+    const targetWorksheetSelect = document.getElementById('targetWorksheetSelect');
+    const newWorksheetInputContainer = document.getElementById('newWorksheetInputContainer');
+    const newWorksheetNameInput = document.getElementById('newWorksheetNameInput');
+    const btnAutoDateTabName = document.getElementById('btnAutoDateTabName');
+    const btnRefreshTabs = document.getElementById('btnRefreshTabs');
+    const saveLangPreference = document.getElementById('saveLangPreference');
+    const saveExportMode = document.getElementById('saveExportMode');
+    const chkAutoHeader = document.getElementById('chkAutoHeader');
+    const modalStatusAlert = document.getElementById('modalStatusAlert');
+    const modalStatusIcon = document.getElementById('modalStatusIcon');
+    const modalStatusMsg = document.getElementById('modalStatusMsg');
+    const btnExecuteSaveToSheets = document.getElementById('btnExecuteSaveToSheets');
+    const btnExecuteText = document.getElementById('btnExecuteText');
+    const btnOpenSpreadsheetLink = document.getElementById('btnOpenSpreadsheetLink');
+
+    // --- Lifecycle Initialization ---
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSavedSettings();
+      fetchLatestExchangeRates();
+      setupEventListeners();
+    });
+
+    function loadSavedSettings() {
+      const savedKey = localStorage.getItem('gemini_api_key') || '';
+      const savedModel = localStorage.getItem('gemini_model') || 'gemini-2.5-flash';
+      const savedClientId = localStorage.getItem('google_client_id') || '';
+      const savedGasUrl = localStorage.getItem('gas_webhook_url') || '';
+      const savedSpreadsheetId = localStorage.getItem('last_spreadsheet_id') || '';
+
+      if (savedKey) geminiApiKeyInput.value = savedKey;
+      if (savedModel) geminiModelSelect.value = savedModel;
+      if (savedClientId) googleClientIdInput.value = savedClientId;
+      if (savedGasUrl) gasWebhookUrlInput.value = savedGasUrl;
+      if (savedSpreadsheetId) targetSpreadsheetInput.value = savedSpreadsheetId;
+    }
+
+    function saveSettings() {
+      localStorage.setItem('gemini_api_key', geminiApiKeyInput.value.trim());
+      localStorage.setItem('gemini_model', geminiModelSelect.value);
+      localStorage.setItem('google_client_id', googleClientIdInput.value.trim());
+      localStorage.setItem('gas_webhook_url', gasWebhookUrlInput.value.trim());
+      showToast('設定已成功儲存至瀏覽器！', 'success');
+    }
+
+    // --- Exchange Rates Fetching ---
+    async function fetchLatestExchangeRates() {
+      try {
+        const res = await fetch('https://open.er-api.com/v6/latest/USD');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.rates && data.rates.TWD) {
+            const usdToTwd = data.rates.TWD;
+            // Calculate rate relative to TWD
+            for (const [curr, val] of Object.entries(data.rates)) {
+              exchangeRates[curr] = usdToTwd / val;
+            }
+            exchangeRates['TWD'] = 1.0;
+            rateStatusText.textContent = `即時匯率生效中 (USD/TWD: ${usdToTwd.toFixed(2)})`;
+            rateDetailText.textContent = '自動折算台幣';
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Could not fetch online exchange rates, using fallback rates', e);
+      }
+      rateStatusText.textContent = '標準匯率生效中 (USD/TWD: 32.5)';
+      rateDetailText.textContent = '已依基準匯率換算';
+    }
+
+    // Convert any currency to TWD
+    function convertToTWD(amount, currency) {
+      if (!amount) return 0;
+      const curr = (currency || 'TWD').toUpperCase();
+      if (curr === 'TWD' || curr === 'NTD' || curr === 'NT$') return amount;
+      const rate = exchangeRates[curr] || exchangeRates['USD'] || 32.5;
+      return Math.round(amount * rate * 100) / 100;
+    }
+
+    // --- Event Listeners Setup ---
+    function setupEventListeners() {
+      // Settings Toggle
+      toggleSettingsBtn.addEventListener('click', () => {
+        settingsPanel.classList.toggle('hidden');
+        settingsChevron.classList.toggle('rotate-180');
+      });
+
+      // API Key Visibility
+      toggleApiKeyVisibility.addEventListener('click', () => {
+        if (geminiApiKeyInput.type === 'password') {
+          geminiApiKeyInput.type = 'text';
+          toggleApiKeyVisibility.innerHTML = '<i class="fa-regular fa-eye-slash"></i>';
+        } else {
+          geminiApiKeyInput.type = 'password';
+          toggleApiKeyVisibility.innerHTML = '<i class="fa-regular fa-eye"></i>';
+        }
+      });
+
+      btnSaveSettings.addEventListener('click', saveSettings);
+
+      // Method tabs (OAuth vs GAS)
+      tabMethodOAuth.addEventListener('click', () => {
+        tabMethodOAuth.classList.add('bg-white', 'text-red-800', 'shadow-sm');
+        tabMethodOAuth.classList.remove('text-slate-600');
+        tabMethodGAS.classList.remove('bg-white', 'text-red-800', 'shadow-sm');
+        tabMethodGAS.classList.add('text-slate-600');
+        methodOAuthContainer.classList.remove('hidden');
+        methodGASContainer.classList.add('hidden');
+      });
+
+      tabMethodGAS.addEventListener('click', () => {
+        tabMethodGAS.classList.add('bg-white', 'text-red-800', 'shadow-sm');
+        tabMethodGAS.classList.remove('text-slate-600');
+        tabMethodOAuth.classList.remove('bg-white', 'text-red-800', 'shadow-sm');
+        tabMethodOAuth.classList.add('text-slate-600');
+        methodGASContainer.classList.remove('hidden');
+        methodOAuthContainer.classList.add('hidden');
+      });
+
+      // Google OAuth Button
+      btnGoogleAuth.addEventListener('click', handleGoogleAuth);
+
+      // Upload Box Interactions
+      uploadBox.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', handleFileSelected);
+
+      // Drag and drop
+      ['dragenter', 'dragover'].forEach(name => {
+        uploadBox.addEventListener(name, (e) => {
+          e.preventDefault();
+          uploadBox.classList.add('dragover');
+        });
+      });
+      ['dragleave', 'drop'].forEach(name => {
+        uploadBox.addEventListener(name, (e) => {
+          e.preventDefault();
+          uploadBox.classList.remove('dragover');
+        });
+      });
+      uploadBox.addEventListener('drop', (e) => {
+        const files = e.dataTransfer.files;
+        if (files.length > 0) processFile(files[0]);
+      });
+
+      // Demo data button
+      btnDemoData.addEventListener('click', useDemoData);
+
+      // Error retry
+      btnRetry.addEventListener('click', () => fileInput.click());
+      btnCancelError.addEventListener('click', () => showSection('upload'));
+
+      // New upload & reset
+      btnNewUpload.addEventListener('click', () => {
+        fileInput.value = '';
+        classifiedData = [];
+        showSection('upload');
+      });
+
+      // Export CSV
+      btnExportCsv.addEventListener('click', exportToCsv);
+
+      // Language Header Switchers (Turn 3 & Turn 4 requirements)
+      headerStoreLangSelect.addEventListener('change', () => renderResultsTable());
+      headerItemLangSelect.addEventListener('change', () => renderResultsTable());
+
+      // Modal Open & Close
+      btnOpenSaveToSheetsModal.addEventListener('click', openSheetsModal);
+      btnCloseModal.addEventListener('click', closeSheetsModal);
+      btnModalCancel.addEventListener('click', closeSheetsModal);
+
+      // Modal Radio Switch: List vs Manual ID
+      radioFileSelect.addEventListener('change', () => {
+        fileSelectContainer.classList.remove('hidden');
+        fileManualContainer.classList.add('hidden');
+      });
+      radioFileManual.addEventListener('change', () => {
+        fileManualContainer.classList.remove('hidden');
+        fileSelectContainer.classList.add('hidden');
+      });
+
+      // Target Spreadsheet Change -> auto fetch worksheets
+      targetSpreadsheetSelect.addEventListener('change', () => {
+        const fileId = targetSpreadsheetSelect.value;
+        if (fileId) fetchSpreadsheetSheets(fileId);
+      });
+      targetSpreadsheetInput.addEventListener('blur', () => {
+        const fileId = extractSpreadsheetId(targetSpreadsheetInput.value);
+        if (fileId) fetchSpreadsheetSheets(fileId);
+      });
+
+      // Worksheet tab selection change
+      targetWorksheetSelect.addEventListener('change', () => {
+        if (targetWorksheetSelect.value === '__NEW__') {
+          newWorksheetInputContainer.classList.remove('hidden');
+          const d = new Date();
+          newWorksheetNameInput.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')} 簽單明細`;
+        } else {
+          newWorksheetInputContainer.classList.add('hidden');
+        }
+      });
+
+      btnAutoDateTabName.addEventListener('click', () => {
+        const d = new Date();
+        newWorksheetNameInput.value = `${d.getFullYear()}年${d.getMonth()+1}月支出`;
+      });
+
+      btnRefreshDriveFiles.addEventListener('click', loadDriveSpreadsheets);
+      btnRefreshTabs.addEventListener('click', () => {
+        const fileId = getSelectedSpreadsheetId();
+        if (fileId) fetchSpreadsheetSheets(fileId);
+        else showToast('請先選取或貼上試算表檔案！', 'error');
+      });
+
+      btnCreateNewSpreadsheet.addEventListener('click', handleCreateNewSpreadsheet);
+      btnExecuteSaveToSheets.addEventListener('click', executeSaveToSheets);
+    }
+
+    // --- State UI Toggle ---
+    function showSection(section) {
+      uploadSection.classList.add('hidden');
+      processingSection.classList.add('hidden');
+      errorSection.classList.add('hidden');
+      resultsSection.classList.add('hidden');
+
+      if (section === 'upload') uploadSection.classList.remove('hidden');
+      else if (section === 'processing') processingSection.classList.remove('hidden');
+      else if (section === 'error') errorSection.classList.remove('hidden');
+      else if (section === 'results') resultsSection.classList.remove('hidden');
+    }
+
+    // --- File Upload Processing ---
+    function handleFileSelected(event) {
+      const file = event.target.files[0];
+      if (file) processFile(file);
+    }
+
+    function processFile(file) {
+      if (file.size > 15 * 1024 * 1024) {
+        showError('檔案過大，請上傳小於 15MB 的圖片或 PDF。');
+        return;
+      }
+
+      showSection('processing');
+      processingTitle.textContent = `正在讀取 ${file.name}...`;
+      processingDetail.textContent = '準備交由 Gemini 多模態模型進行字元擷取與明細分析...';
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          await analyzeReceiptWithAI(file.type || 'image/jpeg', e.target.result);
+        } catch (err) {
+          showError(err.message || '分析失敗，請確認檔案格式是否正確。');
+        }
+      };
+      reader.onerror = function() {
+        showError('讀取本機檔案失敗，請再試一次。');
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+    function showError(msg) {
+      errorMessage.textContent = msg;
+      showSection('error');
+    }
+
+    // --- Demo Data (Turn 1 ~ Turn 5 完整特色展示) ---
+    function useDemoData() {
+      showSection('processing');
+      processingTitle.textContent = '正在載入精選範例資料...';
+      processingDetail.textContent = '包含中英對照商店、多項明細、折扣負數與匯率自動轉換...';
+
+      setTimeout(() => {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        classifiedData = [
+          {
+            merchant_original: "STARBUCKS COFFEE ROASTERY",
+            merchant_zh: "星巴克臻選咖啡烘焙工坊",
+            amount: 22.75,
+            date: todayStr,
+            time: "08:45",
+            currency: "USD",
+            category: "餐飲",
+            lineItems: [
+              { name_original: "Grande Caffe Latte", name_zh: "大杯那堤咖啡", quantity: 1, price: 5.25 },
+              { name_original: "Butter Croissant", name_zh: "法式奶油可頌", quantity: 1, price: 3.50 },
+              { name_original: "Stainless Steel Tumbler", name_zh: "不鏽鋼隨行保溫杯", quantity: 1, price: 18.00 },
+              { name_original: "Morning Member Discount", name_zh: "早晨會員專屬折抵", quantity: 1, price: -4.00 } // Turn 5: 負數折扣
+            ]
+          },
+          {
+            merchant_original: "Bic Camera Shinjuku East",
+            merchant_zh: "必客家樂 新宿東口店",
+            amount: 28400,
+            date: todayStr,
+            time: "14:20",
+            currency: "JPY",
+            category: "購物",
+            lineItems: [
+              { name_original: "Wireless Noise Cancelling Headphones", name_zh: "無線抗噪耳機", quantity: 1, price: 29800 },
+              { name_original: "Tourist Tax-Free 10% Off", name_zh: "外國旅客免稅 10% 優惠", quantity: 1, price: -2700 }, // Turn 5: 負數免稅折抵
+              { name_original: "Type-C Fast Charging Cable", name_zh: "Type-C 疾速快充線", quantity: 1, price: 1300 }
+            ]
+          },
+          {
+            merchant_original: "Carrefour Market",
+            merchant_zh: "家樂福超市",
+            amount: 580,
+            date: todayStr,
+            time: "18:10",
+            currency: "TWD",
+            category: "日常開銷",
+            lineItems: [
+              { name_original: "Fresh Full Cream Milk 936ml", name_zh: "鮮乳坊鮮乳 936ml", quantity: 2, price: 210 },
+              { name_original: "Organic Eggs 10pcs", name_zh: "有機冷藏鮮雞蛋 10入", quantity: 1, price: 135 },
+              { name_original: "Japanese Apples 4pcs", name_zh: "日本進口青森蘋果 4入", quantity: 1, price: 285 },
+              { name_original: "VIP Points Coupon", name_zh: "會員紅利點數現金折價券", quantity: 1, price: -50 } // Turn 5: 負數折價券
+            ]
+          }
+        ];
+
+        renderResultsTable();
+        showSection('results');
+        showToast('範例簽單與收據已成功載入！', 'success');
+      }, 700);
+    }
+
+    // --- Gemini API Call ---
+    async function analyzeReceiptWithAI(mimeType, dataUrl) {
+      const apiKey = geminiApiKeyInput.value.trim() || localStorage.getItem('gemini_api_key');
+      if (!apiKey) {
+        throw new Error('尚未設定 Gemini API Key！請點擊右上角「API & 試算表設定」填入您的金鑰，或使用「載入完整範例資料」快速體驗。');
+      }
+
+      const model = geminiModelSelect.value || 'gemini-2.5-flash';
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+      const prompt = `你是一個專業且極為細心的發票、收據、信用卡簽單光學辨識 (OCR) 與財務分析專家。
+請針對這張上傳的圖片進行深度文字辨識與結構化萃取，嚴格遵循以下要求：
+1. 【商店名稱】：請提取商戶/商店名稱，並同時提供其「原始名稱」(merchant_original) 以及翻譯後的「繁體中文名稱」(merchant_zh)。若原本就是繁體中文，兩者可相同。
+2. 【交易日期與時間】：提取交易日期 (date，格式請標準化為 YYYY-MM-DD) 與交易時間 (time，格式 HH:MM)。若找不到時間可留空字串。
+3. 【總金額與幣別】：提取簽單上的交易總金額 (amount，純數字) 與幣別代碼 (currency，例如 TWD, USD, JPY, EUR, CNY, HKD, KRW 等)。
+4. 【商品明細 (lineItems)】：
+   - 請盡可能完整提取簽單上所有購買品項清單。
+   - 每個商品請提取「原始名稱」(name_original) 與「繁體中文名稱」(name_zh)。
+   - 提取商品「數量」(quantity，預設為 1) 與該項「價格/金額」(price)。
+   - ★【特別重要規則 - 折扣負數】：若品項為「折扣」、「折讓」、「優惠券」、「點數折抵」、「Promotion / Discount / Voucher」等優惠項目，請將其價格 (price) 記錄為「負數」(例如 -50, -10.5)，並在名稱清楚標示！
+5. 【交易分類 (category)】：將此筆交易歸類至下列其中之一：["餐飲", "交通", "住宿", "購物", "日常開銷", "其他"]。
+6. 請嚴格依照所指定的 JSON Schema 格式輸出一個包含所有識別項目的陣列 (ARRAY)。如果圖片無法辨識出任何有效收據資料，請輸出空陣列 []。`;
+
+      const base64Data = dataUrl.split(',')[1];
+      const payload = {
+        contents: [
+          {
+            parts: [
+              { text: prompt },
+              {
+                inlineData: {
+                  mimeType: mimeType.includes('pdf') ? 'application/pdf' : mimeType,
+                  data: base64Data
+                }
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "ARRAY",
+            items: {
+              type: "OBJECT",
+              properties: {
+                merchant_original: { type: "STRING", description: "商店/商戶原始名稱" },
+                merchant_zh: { type: "STRING", description: "商店/商戶繁體中文名稱" },
+                amount: { type: "NUMBER", description: "交易總金額" },
+                date: { type: "STRING", description: "交易日期 (YYYY-MM-DD)" },
+                time: { type: "STRING", description: "交易時間 (HH:MM)" },
+                currency: { type: "STRING", description: "幣別代碼" },
+                category: {
+                  type: "STRING",
+                  description: "分類",
+                  enum: ["餐飲", "交通", "住宿", "購物", "日常開銷", "其他"]
+                },
+                lineItems: {
+                  type: "ARRAY",
+                  description: "購買商品明細清單，折扣折讓價格必須為負數",
+                  items: {
+                    type: "OBJECT",
+                    properties: {
+                      name_original: { type: "STRING", description: "商品原始名稱" },
+                      name_zh: { type: "STRING", description: "商品繁體中文名稱" },
+                      quantity: { type: "NUMBER", description: "數量" },
+                      price: { type: "NUMBER", description: "金額，若是折扣項目請填為負數" }
+                    },
+                    required: ["name_original", "name_zh", "quantity", "price"]
+                  }
+                }
+              },
+              required: ["merchant_original", "merchant_zh", "amount", "date", "currency", "category"]
+            }
+          }
+        }
+      };
+
+      processingDetail.textContent = 'Gemini 模型正在精密計算與分析簽單結構...';
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errMsg = `API 回傳狀態碼 ${response.status}`;
+        try {
+          const errObj = JSON.parse(errorText);
+          if (errObj.error && errObj.error.message) errMsg = errObj.error.message;
+        } catch (e) {}
+        throw new Error(errMsg);
+      }
+
+      const result = await response.json();
+      const rawText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!rawText) throw new Error('AI 未能從圖片中提取出有效結構化資料。');
+
+      const parsed = JSON.parse(rawText);
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        throw new Error('未能在簽單上辨識出交易項目，請確認圖片是否清晰。');
+      }
+
+      classifiedData = parsed;
+      renderResultsTable();
+      showSection('results');
+      showToast('AI 辨識完成！已自動換算台幣', 'success');
+    }
+
+    // --- Render Results Table ---
+    function renderResultsTable() {
+      resultsTableBody.innerHTML = '';
+
+      const storeLang = headerStoreLangSelect.value; // 'zh' or 'original'
+      const itemLang = headerItemLangSelect.value;   // 'zh' or 'original'
+
+      let totalItems = 0;
+      let sumTwd = 0;
+
+      classifiedData.forEach((item, index) => {
+        // Store Name based on header selector
+        const storeName = (storeLang === 'zh' ? (item.merchant_zh || item.merchant_original) : (item.merchant_original || item.merchant_zh)) || '未具名商店';
+        const twdAmount = convertToTWD(item.amount, item.currency);
+        sumTwd += twdAmount;
+
+        const row = document.createElement('tr');
+        row.className = "hover:bg-red-50/40 transition-colors";
+
+        // Line items HTML with discount negative highlighting (Turn 5)
+        let lineItemsHtml = '';
+        if (item.lineItems && item.lineItems.length > 0) {
+          totalItems += item.lineItems.length;
+          lineItemsHtml = `
+            <ul class="mt-2 space-y-1.5 border-t border-slate-100 pt-1.5">
+              ${item.lineItems.map(li => {
+                const itemName = (itemLang === 'zh' ? (li.name_zh || li.name_original) : (li.name_original || li.name_zh)) || '商品明細';
+                const isDiscount = (li.price < 0);
+                return `
+                  <li class="flex items-center justify-between text-xs gap-3 ${isDiscount ? 'text-red-600 font-semibold bg-red-50/80 px-2 py-0.5 rounded border border-red-200' : 'text-slate-600'}">
+                    <span class="flex items-center gap-1.5">
+                      ${isDiscount ? '<i class="fa-solid fa-tag text-[10px]"></i>' : '<span class="text-slate-300">•</span>'}
+                      <span>${itemName}</span>
+                      <span class="text-slate-400 font-normal">x ${li.quantity || 1}</span>
+                    </span>
+                    <span class="tabular-nums font-medium ${isDiscount ? 'text-red-700' : 'text-slate-700'}">
+                      ${isDiscount ? '' : ''}${item.currency} ${Number(li.price).toFixed(2)}
+                    </span>
+                  </li>
+                `;
+              }).join('')}
+            </ul>
+          `;
+        } else {
+          totalItems += 1;
+        }
+
+        row.innerHTML = `
+          <!-- Store Name -->
+          <td class="px-4 py-3.5 align-top">
+            <div class="font-bold text-slate-900">${escapeHtml(storeName)}</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">
+              ${storeLang === 'zh' ? (item.merchant_original ? escapeHtml(item.merchant_original) : '') : (item.merchant_zh ? escapeHtml(item.merchant_zh) : '')}
+            </div>
+          </td>
+
+          <!-- Items Detail -->
+          <td class="px-4 py-3.5 align-top min-w-[260px]">
+            <div class="text-xs font-semibold text-slate-700 flex items-center justify-between">
+              <span>明細列表 (${item.lineItems ? item.lineItems.length : 1} 項)</span>
+            </div>
+            ${lineItemsHtml}
+          </td>
+
+          <!-- Original Currency Amount -->
+          <td class="px-4 py-3.5 align-top whitespace-nowrap font-semibold text-slate-800 tabular-nums">
+            ${item.currency} ${Number(item.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </td>
+
+          <!-- TWD Converted Amount -->
+          <td class="px-4 py-3.5 align-top whitespace-nowrap font-bold text-red-700 tabular-nums">
+            NT$ ${twdAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </td>
+
+          <!-- Date & Time -->
+          <td class="px-4 py-3.5 align-top whitespace-nowrap text-xs text-slate-600">
+            <div class="font-medium text-slate-800">${item.date || '-'}</div>
+            <div class="text-[11px] text-slate-400">${item.time || ''}</div>
+          </td>
+
+          <!-- Category Badge -->
+          <td class="px-4 py-3.5 align-top whitespace-nowrap">
+            <span class="badge category-${item.category || '其他'}">${item.category || '其他'}</span>
+          </td>
+
+          <!-- Actions -->
+          <td class="px-4 py-3.5 align-top text-center whitespace-nowrap">
+            <button onclick="deleteReceiptRow(${index})" class="text-slate-400 hover:text-red-600 p-1.5 rounded-lg transition" title="刪除此筆">
+              <i class="fa-regular fa-trash-can"></i>
+            </button>
+          </td>
+        `;
+
+        resultsTableBody.appendChild(row);
+      });
+
+      totalReceiptCount.textContent = classifiedData.length;
+      totalItemCount.textContent = totalItems;
+      totalTwdSum.textContent = `NT$ ${sumTwd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    // Delete single row
+    window.deleteReceiptRow = function(index) {
+      if (confirm('確定要移除此筆簽單紀錄嗎？')) {
+        classifiedData.splice(index, 1);
+        if (classifiedData.length === 0) {
+          showSection('upload');
+        } else {
+          renderResultsTable();
+        }
+      }
+    };
+
+    // --- CSV Export Function ---
+    function exportToCsv() {
+      if (!classifiedData || classifiedData.length === 0) return;
+
+      const headers = ['商店名稱(中文)', '商店名稱(原文)', '商品名稱(中文)', '商品名稱(原文)', '商品數量', '商品單價/小計', '原幣總金額', '幣別', '折合台幣(TWD)', '日期', '時間', '分類'];
+      const csvRows = [headers.join(',')];
+
+      for (const row of classifiedData) {
+        const twd = convertToTWD(row.amount, row.currency);
+        if (row.lineItems && row.lineItems.length > 0) {
+          for (const li of row.lineItems) {
+            const vals = [
+              `"${(row.merchant_zh || '').replace(/"/g, '""')}"`,
+              `"${(row.merchant_original || '').replace(/"/g, '""')}"`,
+              `"${(li.name_zh || '').replace(/"/g, '""')}"`,
+              `"${(li.name_original || '').replace(/"/g, '""')}"`,
+              li.quantity || 1,
+              li.price,
+              row.amount,
+              row.currency,
+              twd,
+              `"${row.date || ''}"`,
+              `"${row.time || ''}"`,
+              `"${row.category || ''}"`
+            ];
+            csvRows.push(vals.join(','));
+          }
+        } else {
+          const vals = [
+            `"${(row.merchant_zh || '').replace(/"/g, '""')}"`,
+            `"${(row.merchant_original || '').replace(/"/g, '""')}"`,
+            `""`,
+            `""`,
+            `1`,
+            row.amount,
+            row.amount,
+            row.currency,
+            twd,
+            `"${row.date || ''}"`,
+            `"${row.time || ''}"`,
+            `"${row.category || ''}"`
+          ];
+          csvRows.push(vals.join(','));
+        }
+      }
+
+      const csvContent = '\uFEFF' + csvRows.join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const today = new Date().toISOString().slice(0, 10);
+      link.download = `簽單收據明細匯總_${today}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast('已匯出 CSV 檔案！', 'success');
+    }
+
+    // =========================================================================
+    // GOOGLE SHEETS & DRIVE API INTEGRATION (詢問檔案與工作表之核心邏輯)
+    // =========================================================================
+
+    // Handle Google OAuth 2.0 Login
+    function handleGoogleAuth() {
+      const clientId = googleClientIdInput.value.trim() || localStorage.getItem('google_client_id');
+      if (!clientId) {
+        const userPrompt = prompt(
+          "請輸入您的 Google OAuth 2.0 Client ID：\n(如未申請，您亦可使用 Apps Script Webhook 模式，請查看說明文件)",
+          ""
+        );
+        if (userPrompt) {
+          googleClientIdInput.value = userPrompt.trim();
+          localStorage.setItem('google_client_id', userPrompt.trim());
+        } else {
+          return;
+        }
+      }
+
+      const tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: googleClientIdInput.value.trim(),
+        scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file',
+        callback: (resp) => {
+          if (resp.error) {
+            showToast(`Google 授權失敗: ${resp.error}`, 'error');
+            return;
+          }
+          googleAccessToken = resp.access_token;
+          authIndicator.className = 'w-2.5 h-2.5 rounded-full bg-green-500 inline-block';
+          authStatusText.textContent = '已成功連線 Google 帳號';
+          btnGoogleAuthText.textContent = '重新登入/更換帳號';
+          showToast('Google 帳號授權成功！已可讀取試算表檔案清單', 'success');
+          loadDriveSpreadsheets();
+        }
+      });
+
+      tokenClient.requestAccessToken({ prompt: 'consent' });
+    }
+
+    // Load user's Google Spreadsheets from Google Drive
+    async function loadDriveSpreadsheets() {
+      if (!googleAccessToken) {
+        targetSpreadsheetSelect.innerHTML = '<option value="">請先登入 Google 帳號以列出檔案清單</option>';
+        return;
+      }
+
+      targetSpreadsheetSelect.innerHTML = '<option value="">正在從 Google Drive 讀取試算表清單...</option>';
+      try {
+        const query = encodeURIComponent("mimeType='application/vnd.google-apps.spreadsheet' and trashed=false");
+        const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}&orderBy=modifiedTime desc&pageSize=30&fields=files(id,name,modifiedTime)`, {
+          headers: { 'Authorization': `Bearer ${googleAccessToken}` }
+        });
+
+        if (!res.ok) throw new Error('讀取 Google Drive 失敗');
+        const data = await res.json();
+        driveSpreadsheets = data.files || [];
+
+        targetSpreadsheetSelect.innerHTML = '';
+        if (driveSpreadsheets.length === 0) {
+          targetSpreadsheetSelect.innerHTML = '<option value="">未找到任何試算表檔案，請點擊「建立新試算表」</option>';
+        } else {
+          driveSpreadsheets.forEach(file => {
+            const opt = document.createElement('option');
+            opt.value = file.id;
+            opt.textContent = `${file.name}`;
+            targetSpreadsheetSelect.appendChild(opt);
+          });
+          // Automatically fetch sheets for the first spreadsheet
+          fetchSpreadsheetSheets(driveSpreadsheets[0].id);
+        }
+      } catch (err) {
+        console.error(err);
+        targetSpreadsheetSelect.innerHTML = '<option value="">讀取清單失敗，您可手動貼上試算表網址</option>';
+      }
+    }
+
+    // Fetch worksheet tabs of a given spreadsheet
+    async function fetchSpreadsheetSheets(spreadsheetId) {
+      if (!spreadsheetId) return;
+
+      targetWorksheetSelect.innerHTML = '<option value="">正在讀取工作表分頁...</option>';
+
+      // Method 1: Google OAuth with Sheets API
+      if (googleAccessToken) {
+        try {
+          const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties`, {
+            headers: { 'Authorization': `Bearer ${googleAccessToken}` }
+          });
+          if (!res.ok) throw new Error('無法讀取該試算表之工作表');
+          const data = await res.json();
+          const sheets = data.sheets || [];
+
+          targetWorksheetSelect.innerHTML = '';
+          sheets.forEach(s => {
+            const title = s.properties.title;
+            const opt = document.createElement('option');
+            opt.value = title;
+            opt.textContent = `分頁：${title}`;
+            targetWorksheetSelect.appendChild(opt);
+          });
+
+          // Add New Sheet Option
+          const newOpt = document.createElement('option');
+          newOpt.value = '__NEW__';
+          newOpt.textContent = '＋ 建立新工作表分頁...';
+          targetWorksheetSelect.appendChild(newOpt);
+
+          return;
+        } catch (err) {
+          console.warn('Sheets API read tab error:', err);
+        }
+      }
+
+      // Method 2: GAS Webhook fallback (if configured)
+      const gasUrl = gasWebhookUrlInput.value.trim() || localStorage.getItem('gas_webhook_url');
+      if (gasUrl) {
+        try {
+          const res = await fetch(`${gasUrl}?action=getSheets&spreadsheetId=${encodeURIComponent(spreadsheetId)}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.sheets && Array.isArray(data.sheets)) {
+              targetWorksheetSelect.innerHTML = '';
+              data.sheets.forEach(title => {
+                const opt = document.createElement('option');
+                opt.value = title;
+                opt.textContent = `分頁：${title}`;
+                targetWorksheetSelect.appendChild(opt);
+              });
+              const newOpt = document.createElement('option');
+              newOpt.value = '__NEW__';
+              newOpt.textContent = '＋ 建立新工作表分頁...';
+              targetWorksheetSelect.appendChild(newOpt);
+              return;
+            }
+          }
+        } catch (e) {
+          console.warn('GAS read tab error:', e);
+        }
+      }
+
+      // Fallback default tabs
+      targetWorksheetSelect.innerHTML = `
+        <option value="工作表1">工作表1 (預設分頁)</option>
+        <option value="Sheet1">Sheet1</option>
+        <option value="__NEW__">＋ 建立新工作表分頁...</option>
+      `;
+    }
+
+    // Helper: extract spreadsheet ID from URL or bare ID
+    function extractSpreadsheetId(input) {
+      if (!input) return '';
+      const match = input.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      if (match && match[1]) return match[1];
+      return input.trim();
+    }
+
+    function getSelectedSpreadsheetId() {
+      if (radioFileSelect.checked) {
+        return targetSpreadsheetSelect.value;
+      } else {
+        return extractSpreadsheetId(targetSpreadsheetInput.value);
+      }
+    }
+
+    // Create a new Google Spreadsheet on user's Drive
+    async function handleCreateNewSpreadsheet() {
+      if (!googleAccessToken) {
+        showToast('請先登入 Google 帳號授權建立試算表！', 'warning');
+        handleGoogleAuth();
+        return;
+      }
+
+      const defaultTitle = `簽單收據記帳本_${new Date().toISOString().slice(0, 10)}`;
+      const title = prompt('請輸入新 Google 試算表檔案名稱：', defaultTitle);
+      if (!title) return;
+
+      showModalStatus('正在建立新 Google 試算表...', 'info');
+
+      try {
+        const res = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${googleAccessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            properties: { title: title },
+            sheets: [
+              { properties: { title: '簽單明細' } }
+            ]
+          })
+        });
+
+        if (!res.ok) throw new Error('建立試算表失敗');
+        const data = await res.json();
+        const newId = data.spreadsheetId;
+
+        showToast(`新試算表「${title}」已成功建立！`, 'success');
+        hideModalStatus();
+
+        // Switch to this new spreadsheet
+        localStorage.setItem('last_spreadsheet_id', newId);
+        await loadDriveSpreadsheets();
+        targetSpreadsheetSelect.value = newId;
+        fetchSpreadsheetSheets(newId);
+      } catch (err) {
+        showModalStatus(`建立失敗: ${err.message}`, 'error');
+      }
+    }
+
+    // Open Modal and initialize
+    function openSheetsModal() {
+      if (!classifiedData || classifiedData.length === 0) {
+        showToast('目前尚無已辨識的簽單資料可轉存！', 'warning');
+        return;
+      }
+
+      // Pre-fill last used spreadsheet ID
+      const lastId = localStorage.getItem('last_spreadsheet_id');
+      if (lastId && targetSpreadsheetInput) targetSpreadsheetInput.value = lastId;
+
+      sheetsModal.classList.remove('hidden');
+      setTimeout(() => {
+        modalContainer.classList.remove('scale-95', 'opacity-0');
+        modalContainer.classList.add('scale-100', 'opacity-100');
+      }, 10);
+
+      if (googleAccessToken) {
+        loadDriveSpreadsheets();
+      } else {
+        // If not logged in, prompt gently
+        const savedClientId = localStorage.getItem('google_client_id');
+        if (savedClientId) {
+          targetSpreadsheetSelect.innerHTML = '<option value="">點擊左上「登入 Google」以載入清單，或切換至「貼上網址/ID」</option>';
+        }
+      }
+    }
+
+    function closeSheetsModal() {
+      modalContainer.classList.remove('scale-100', 'opacity-100');
+      modalContainer.classList.add('scale-95', 'opacity-0');
+      setTimeout(() => {
+        sheetsModal.classList.add('hidden');
+        hideModalStatus();
+      }, 250);
+    }
+
+    function showModalStatus(msg, type = 'info') {
+      modalStatusAlert.classList.remove('hidden', 'bg-blue-50', 'text-blue-800', 'bg-green-50', 'text-green-800', 'bg-red-50', 'text-red-800');
+      if (type === 'info') {
+        modalStatusAlert.classList.add('bg-blue-50', 'text-blue-800');
+        modalStatusIcon.className = 'fa-solid fa-spinner fa-spin text-base';
+      } else if (type === 'success') {
+        modalStatusAlert.classList.add('bg-green-50', 'text-green-800');
+        modalStatusIcon.className = 'fa-solid fa-circle-check text-base text-green-600';
+      } else if (type === 'error') {
+        modalStatusAlert.classList.add('bg-red-50', 'text-red-800');
+        modalStatusIcon.className = 'fa-solid fa-circle-xmark text-base text-red-600';
+      }
+      modalStatusMsg.textContent = msg;
+    }
+
+    function hideModalStatus() {
+      modalStatusAlert.classList.add('hidden');
+    }
+
+    // --- Core Action: Execute Save Data to Google Sheets ---
+    async function executeSaveToSheets() {
+      const spreadsheetId = getSelectedSpreadsheetId();
+      if (!spreadsheetId) {
+        showModalStatus('請選取或輸入目標 Google 試算表檔案！', 'error');
+        return;
+      }
+
+      // Determine Worksheet Name
+      let worksheetName = targetWorksheetSelect.value;
+      if (worksheetName === '__NEW__') {
+        worksheetName = newWorksheetNameInput.value.trim();
+        if (!worksheetName) {
+          showModalStatus('請輸入新工作表分頁的名稱！', 'error');
+          return;
+        }
+      }
+
+      if (!worksheetName) worksheetName = '工作表1';
+
+      localStorage.setItem('last_spreadsheet_id', spreadsheetId);
+
+      btnExecuteSaveToSheets.disabled = true;
+      btnExecuteText.textContent = '正在轉存寫入中...';
+      showModalStatus(`正在連線並將資料寫入工作表「${worksheetName}」...`, 'info');
+
+      // Prepare payload data rows
+      const langPref = saveLangPreference.value; // 'current', 'zh', 'original', 'both'
+      const exportMode = saveExportMode.value;    // 'items' or 'receipts'
+      const storeCurrentLang = headerStoreLangSelect.value;
+      const itemCurrentLang = headerItemLangSelect.value;
+
+      const headerRow = [
+        "日期", "時間", "商店名稱", "商品品項", "數量", "單價/金額", "原幣總額", "幣別", "折合台幣 (TWD)", "分類", "備註/標籤"
+      ];
+
+      const dataRows = [];
+
+      for (const row of classifiedData) {
+        // Resolve Store Name
+        let storeName = "";
+        if (langPref === 'zh') storeName = row.merchant_zh || row.merchant_original;
+        else if (langPref === 'original') storeName = row.merchant_original || row.merchant_zh;
+        else if (langPref === 'both') storeName = `${row.merchant_zh || ''} (${row.merchant_original || ''})`.trim();
+        else storeName = (storeCurrentLang === 'zh') ? (row.merchant_zh || row.merchant_original) : (row.merchant_original || row.merchant_zh);
+
+        const twd = convertToTWD(row.amount, row.currency);
+
+        if (exportMode === 'items' && row.lineItems && row.lineItems.length > 0) {
+          for (const li of row.lineItems) {
+            let itemName = "";
+            if (langPref === 'zh') itemName = li.name_zh || li.name_original;
+            else if (langPref === 'original') itemName = li.name_original || li.name_zh;
+            else if (langPref === 'both') itemName = `${li.name_zh || ''} (${li.name_original || ''})`.trim();
+            else itemName = (itemCurrentLang === 'zh') ? (li.name_zh || li.name_original) : (li.name_original || li.name_zh);
+
+            const isDiscount = (li.price < 0);
+            const note = isDiscount ? "折扣折讓" : "";
+
+            dataRows.push([
+              row.date || "",
+              row.time || "",
+              storeName,
+              itemName,
+              li.quantity || 1,
+              li.price,
+              row.amount,
+              row.currency,
+              twd,
+              row.category || "",
+              note
+            ]);
+          }
+        } else {
+          // One row per receipt
+          const itemsSummary = (row.lineItems || []).map(li => {
+            const name = (langPref === 'zh' ? li.name_zh : li.name_original) || li.name_zh;
+            return `${name} x${li.quantity || 1} (${li.price})`;
+          }).join('; ');
+
+          dataRows.push([
+            row.date || "",
+            row.time || "",
+            storeName,
+            itemsSummary || "無品項明細",
+            (row.lineItems ? row.lineItems.length : 1),
+            row.amount,
+            row.amount,
+            row.currency,
+            twd,
+            row.category || "",
+            ""
+          ]);
+        }
+      }
+
+      try {
+        // Strategy 1: Google OAuth Sheets API v4
+        if (googleAccessToken) {
+          await writeDataViaSheetsApi(spreadsheetId, worksheetName, headerRow, dataRows);
+        }
+        // Strategy 2: Google Apps Script Webhook
+        else {
+          const gasUrl = gasWebhookUrlInput.value.trim() || localStorage.getItem('gas_webhook_url');
+          if (gasUrl) {
+            await writeDataViaGAS(gasUrl, spreadsheetId, worksheetName, headerRow, dataRows);
+          } else {
+            // Neither is configured -> prompt Google login
+            throw new Error('尚未連線 Google 帳號！請先點擊「登入 Google」或於設定中輸入 Apps Script 網址。');
+          }
+        }
+
+        showModalStatus(`🎉 成功存入 ${dataRows.length} 筆明細資料至「${worksheetName}」！`, 'success');
+        showToast(`已成功轉存到 Google 試算表！`, 'success');
+
+        const sheetUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit`;
+        btnOpenSpreadsheetLink.href = sheetUrl;
+        btnOpenSpreadsheetLink.classList.remove('hidden');
+
+      } catch (err) {
+        console.error(err);
+        showModalStatus(`轉存失敗: ${err.message}`, 'error');
+        showToast(`轉存失敗: ${err.message}`, 'error');
+      } finally {
+        btnExecuteSaveToSheets.disabled = false;
+        btnExecuteText.textContent = '確認存入工作表';
+      }
+    }
+
+    // Write data using Google Sheets API v4
+    async function writeDataViaSheetsApi(spreadsheetId, worksheetName, headerRow, dataRows) {
+      // 1. Check if sheet exists or create new tab if requested
+      const metaRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties`, {
+        headers: { 'Authorization': `Bearer ${googleAccessToken}` }
+      });
+      if (!metaRes.ok) throw new Error('無法存取目標試算表，請確認權限或 ID 是否正確');
+
+      const metaData = await metaRes.json();
+      const existingSheets = (metaData.sheets || []).map(s => s.properties.title);
+
+      if (!existingSheets.includes(worksheetName)) {
+        // Add new sheet tab via batchUpdate
+        const addSheetRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${googleAccessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            requests: [
+              {
+                addSheet: {
+                  properties: { title: worksheetName }
+                }
+              }
+            ]
+          })
+        });
+        if (!addSheetRes.ok) throw new Error(`建立工作表分頁「${worksheetName}」失敗`);
+      }
+
+      // 2. Check if the sheet already has data (for header insertion)
+      let needsHeader = false;
+      if (chkAutoHeader.checked) {
+        try {
+          const checkRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(worksheetName)}!A1:D1`, {
+            headers: { 'Authorization': `Bearer ${googleAccessToken}` }
+          });
+          if (checkRes.ok) {
+            const checkData = await checkRes.json();
+            if (!checkData.values || checkData.values.length === 0) {
+              needsHeader = true;
+            }
+          }
+        } catch (e) {
+          needsHeader = true;
+        }
+      }
+
+      const rowsToWrite = needsHeader ? [headerRow, ...dataRows] : dataRows;
+
+      // 3. Append rows
+      const appendRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(worksheetName)}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${googleAccessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          values: rowsToWrite
+        })
+      });
+
+      if (!appendRes.ok) {
+        const errJson = await appendRes.json();
+        throw new Error(errJson.error?.message || '寫入工作表失敗');
+      }
+    }
+
+    // Write data using Google Apps Script Webhook
+    async function writeDataViaGAS(gasUrl, spreadsheetId, worksheetName, headerRow, dataRows) {
+      const payload = {
+        action: 'appendData',
+        spreadsheetId: spreadsheetId,
+        sheetName: worksheetName,
+        autoHeader: chkAutoHeader.checked,
+        header: headerRow,
+        rows: dataRows
+      };
+
+      const res = await fetch(gasUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error('GAS Webhook 伺服器無回應');
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || 'GAS 寫入失敗');
+    }
+
+    // Helper: Toast Notifications
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const toastMessage = document.getElementById('toastMessage');
+      const toastIcon = document.getElementById('toastIcon');
+
+      toastMessage.textContent = message;
+      if (type === 'success') {
+        toastIcon.className = 'fa-solid fa-circle-check text-green-400';
+      } else if (type === 'error') {
+        toastIcon.className = 'fa-solid fa-circle-xmark text-red-400';
+      } else if (type === 'warning') {
+        toastIcon.className = 'fa-solid fa-triangle-exclamation text-yellow-400';
+      }
+
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3500);
+    }
+
+    // Helper: HTML Escape
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
