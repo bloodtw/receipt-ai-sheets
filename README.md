@@ -28,7 +28,7 @@
 ### 步驟 2：設定 Gemini API Key
 1. 點擊右上角 **「API & 試算表設定」**。
 2. 填入您的 Google Gemini API Key（可前往 [Google AI Studio](https://aistudio.google.com/apikey) 免費獲取）。
-3. 預設推薦模型為 `gemini-2.5-flash`（極速且辨識度極高）。
+3. 預設推薦模型為 `gemini-3.1-flash-lite`（最新超低延遲首選，高性價比 & 極速辨識），並支援切換至成熟穩定的 `gemini-2.5-flash`。
 > 💡 貼心提醒：如果手邊暫時沒有 API Key，可直接在畫面上點選 **「載入完整範例資料 (免金鑰體驗)」**，立即體驗中英切換、負數折抵與匯率試算！
 
 ### 步驟 3：辨識簽單與收據

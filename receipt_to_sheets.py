@@ -67,7 +67,7 @@ def convert_to_twd(amount, currency, rates):
     return round(float(amount) * rate, 2)
 
 
-def analyze_receipt_image(image_path, api_key, model="gemini-2.5-flash"):
+def analyze_receipt_image(image_path, api_key, model="gemini-3.1-flash-lite"):
     """使用 Gemini 多模態 API 辨識簽單內容"""
     print(f"\n[+] 正在分析收據圖片: {os.path.basename(image_path)} ...")
 
