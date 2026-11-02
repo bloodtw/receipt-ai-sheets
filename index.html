@@ -53,30 +53,7 @@
     }
     .category-餐飲 { background: #fee2e2; color: #991b1b; }
     .category-交通 { background: #ffedd5; color: #9a3412; }
-    .category-住宿 { background: #fef3c7; color: #92400e; }
     .category-購物 { background: #e0e7ff; color: #3730a3; }
-    .category-日常開銷 { background: #dcfce7; color: #166534; }
-    .category-其他 { background: #f3f4f6; color: #374151; }
-    .table-select {
-      background-color: #fff;
-      border: 1px solid #fca5a5;
-      color: #991b1b;
-      font-size: 0.8125rem;
-      font-weight: 600;
-      border-radius: 0.375rem;
-      padding: 0.25rem 0.6rem;
-      cursor: pointer;
-      outline: none;
-    }
-    .table-select:focus {
-      border-color: #dc2626;
-      ring: 2px solid #f87171;
-    }
-    .discount-tag {
-      background-color: #fef2f2;
-      color: #dc2626;
-      border: 1px solid #fecaca;
-    }
     /* Modal Backdrop */
     .modal-backdrop {
       background-color: rgba(15, 23, 42, 0.65);
@@ -86,7 +63,7 @@
 </head>
 <body class="p-3 sm:p-6 lg:p-8 text-slate-800">
 
-  <div class="max-w-6xl mx-auto space-y-6">
+  <div class="max-w-7xl mx-auto space-y-6">
 
     <!-- Header Section -->
     <header class="glass-card rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-4 border-b-4 border-b-red-600">
@@ -97,10 +74,10 @@
         <div>
           <div class="flex items-center gap-2 flex-wrap justify-center md:justify-start">
             <h1 class="text-2xl sm:text-3xl font-black text-red-900 tracking-tight">AI 智慧刷卡簽單 & 收據整理工具</h1>
-            <span class="bg-red-100 text-red-800 text-xs font-bold px-2.5 py-0.5 rounded-full border border-red-300">V1.0 Google 試算表同步版</span>
+            <span class="bg-red-100 text-red-800 text-xs font-bold px-2.5 py-0.5 rounded-full border border-red-300">V1.1 Google 試算表同步版</span>
           </div>
           <p class="text-red-700/80 text-sm mt-1">
-            自動 OCR 辨識日期、時間、商店、品項數量、折扣負數與金額，並換算當日即時台幣匯率，一鍵直存 Google 試算表！
+            依序自動擷取 14 項標準欄位（含中英商店/商品名稱、數量、價格、當日歷史匯率與台幣換算、餐飲/交通/購物分類），一鍵直存 Google 試算表！
           </p>
         </div>
       </div>
@@ -138,7 +115,7 @@
                 <i class="fa-regular fa-eye"></i>
               </button>
             </div>
-            <p class="text-[11px] text-slate-500 mt-1">若無金鑰亦可使用下方「使用範例資料」快速體驗完整流程。</p>
+            <p class="text-[11px] text-slate-500 mt-1">若無金鑰亦可使用下方「載入完整範例資料」快速體驗完整流程。</p>
           </div>
 
           <div>
@@ -217,15 +194,15 @@
             </div>
             <h3 class="text-lg font-bold text-red-950">點擊上傳或拖曳簽單 / 收據至此</h3>
             <p class="text-sm text-red-700/80 mt-1.5">支援手機拍照、JPG、PNG、WebP、PDF 檔案 (建議小於 10MB)</p>
-            <div class="flex items-center gap-2 mt-4 text-xs text-slate-500">
+            <div class="flex flex-wrap items-center justify-center gap-2 mt-4 text-xs text-slate-500">
               <span class="inline-flex items-center gap-1 bg-white/80 px-2.5 py-1 rounded-md border border-red-100">
-                <i class="fa-solid fa-camera text-red-500"></i> 手機拍照
+                <i class="fa-solid fa-table-columns text-red-500"></i> 14 欄標準順序擷取
               </span>
               <span class="inline-flex items-center gap-1 bg-white/80 px-2.5 py-1 rounded-md border border-red-100">
                 <i class="fa-solid fa-percent text-red-500"></i> 自動辨識負數折扣
               </span>
               <span class="inline-flex items-center gap-1 bg-white/80 px-2.5 py-1 rounded-md border border-red-100">
-                <i class="fa-solid fa-calculator text-red-500"></i> 當日自動換算台幣
+                <i class="fa-solid fa-calendar-day text-red-500"></i> 依交易日期當天匯率換算台幣
               </span>
             </div>
           </div>
@@ -237,7 +214,7 @@
             <i class="fa-solid fa-wand-magic-sparkles text-red-600"></i>
             <span>載入完整範例資料 (免金鑰體驗)</span>
           </button>
-          <span class="text-xs text-slate-400">含多項商品、中英翻譯、負數折抵優惠與外幣即時換算</span>
+          <span class="text-xs text-slate-400">展示 14 欄完整結構、餐飲/交通/購物分類、負數折扣與消費當日匯率轉換</span>
         </div>
       </section>
 
@@ -246,7 +223,7 @@
         <div class="loader-ring mx-auto"></div>
         <h3 id="processingTitle" class="text-xl font-bold text-red-900 mt-6">AI 正在辨識您的簽單收據...</h3>
         <p id="processingDetail" class="text-sm text-red-700/70 mt-2">
-          正在執行光學字元辨識、商品品項萃取、負數折扣解析及當日即時外匯換算...
+          正在執行光學字元辨識、中英雙語品項萃取、負數折扣解析及交易當日歷史外匯查詢...
         </p>
       </section>
 
@@ -277,10 +254,10 @@
           <div>
             <h2 class="text-2xl font-black text-red-900 flex items-center gap-2">
               <i class="fa-solid fa-clipboard-check text-red-600"></i>
-              辨識與整理結果
+              辨識與整理結果 (14 欄標準順序)
             </h2>
             <p class="text-xs text-slate-500 mt-1">
-              可於表頭獨立切換商店名稱與商品名稱之語言，並直接同步存入 Google 試算表。
+              由左至右依序為：商店名稱(中文/原文)、商品名稱(中文/原文)、數量、價格、總金額、幣別、台幣金額、日期、時間、分類、購買人(留白)、當日匯率。
             </p>
           </div>
 
@@ -288,48 +265,36 @@
           <div class="flex items-center gap-3 bg-red-50/80 px-3.5 py-2 rounded-xl border border-red-200 text-xs">
             <i class="fa-solid fa-arrow-trend-up text-red-600"></i>
             <div>
-              <span class="font-bold text-red-900" id="rateStatusText">今日匯率已更新</span>
-              <span class="text-slate-500 ml-1" id="rateDetailText">(自動折算 TWD)</span>
+              <span class="font-bold text-red-900" id="rateStatusText">依交易日期匯率換算</span>
+              <span class="text-slate-500 ml-1" id="rateDetailText">(外幣 vs 台幣)</span>
             </div>
           </div>
         </div>
 
-        <!-- Detailed Results Table -->
+        <!-- Detailed Results Table (Exact 14 Columns from Left to Right) -->
         <div class="overflow-x-auto rounded-xl border border-red-200 shadow-sm bg-white">
-          <table class="min-w-full divide-y divide-red-100 text-left text-sm">
+          <table class="min-w-full divide-y divide-red-100 text-left text-xs sm:text-sm">
             <thead class="bg-red-50/90 text-red-900">
               <tr>
-                <!-- Store Column with Header Language Dropdown -->
-                <th class="px-4 py-3.5 font-bold">
-                  <div class="flex items-center gap-2">
-                    <span>商店名稱</span>
-                    <select id="headerStoreLangSelect" class="table-select text-xs" title="切換所有商店名稱的顯示語言">
-                      <option value="zh" selected>切換：繁體中文</option>
-                      <option value="original">切換：原文名稱</option>
-                    </select>
-                  </div>
-                </th>
-
-                <!-- Items Column with Header Language Dropdown -->
-                <th class="px-4 py-3.5 font-bold">
-                  <div class="flex items-center gap-2">
-                    <span>商品名稱 / 明細 (數量與單價)</span>
-                    <select id="headerItemLangSelect" class="table-select text-xs" title="切換所有商品名稱的顯示語言">
-                      <option value="zh" selected>切換：繁體中文</option>
-                      <option value="original">切換：原文名稱</option>
-                    </select>
-                  </div>
-                </th>
-
-                <th class="px-4 py-3.5 font-bold whitespace-nowrap">原幣總額</th>
-                <th class="px-4 py-3.5 font-bold whitespace-nowrap text-red-700">台幣金額 (TWD)</th>
-                <th class="px-4 py-3.5 font-bold whitespace-nowrap">日期 / 時間</th>
-                <th class="px-4 py-3.5 font-bold whitespace-nowrap">類別</th>
-                <th class="px-4 py-3.5 font-bold text-center whitespace-nowrap">操作</th>
+                <th class="px-3 py-3.5 font-bold whitespace-nowrap">1. 商店名稱 (中文)</th>
+                <th class="px-3 py-3.5 font-bold whitespace-nowrap">2. 商店名稱 (原文)</th>
+                <th class="px-3 py-3.5 font-bold whitespace-nowrap">3. 商品名稱 (中文)</th>
+                <th class="px-3 py-3.5 font-bold whitespace-nowrap">4. 商品名稱 (原文)</th>
+                <th class="px-3 py-3.5 font-bold whitespace-nowrap text-right">5. 商品數量</th>
+                <th class="px-3 py-3.5 font-bold whitespace-nowrap text-right">6. 商品價格</th>
+                <th class="px-3 py-3.5 font-bold whitespace-nowrap text-right">7. 總金額</th>
+                <th class="px-3 py-3.5 font-bold whitespace-nowrap text-center">8. 幣別</th>
+                <th class="px-3 py-3.5 font-bold whitespace-nowrap text-right text-red-700">9. 台幣金額</th>
+                <th class="px-3 py-3.5 font-bold whitespace-nowrap">10. 日期</th>
+                <th class="px-3 py-3.5 font-bold whitespace-nowrap">11. 時間</th>
+                <th class="px-3 py-3.5 font-bold whitespace-nowrap text-center">12. 分類</th>
+                <th class="px-3 py-3.5 font-bold whitespace-nowrap text-center">13. 購買人</th>
+                <th class="px-3 py-3.5 font-bold whitespace-nowrap text-right">14. 匯率</th>
+                <th class="px-3 py-3.5 font-bold text-center whitespace-nowrap">操作</th>
               </tr>
             </thead>
             <tbody id="resultsTableBody" class="divide-y divide-red-100 bg-white">
-              <!-- Dynamically populated rows -->
+              <!-- Dynamically populated 14-column rows -->
             </tbody>
           </table>
         </div>
@@ -338,10 +303,10 @@
         <div class="bg-gradient-to-r from-red-50 to-rose-50 p-4 rounded-xl border border-red-200 flex flex-wrap items-center justify-between gap-4">
           <div class="text-sm text-slate-700 flex items-center gap-4">
             <span>共辨識 <b id="totalReceiptCount" class="text-red-700 font-bold">0</b> 筆簽單</span>
-            <span>商品總品項 <b id="totalItemCount" class="text-red-700 font-bold">0</b> 項</span>
+            <span>展開明細共 <b id="totalItemCount" class="text-red-700 font-bold">0</b> 列</span>
           </div>
           <div class="text-right">
-            <span class="text-xs text-slate-500 mr-2">折合台幣總計:</span>
+            <span class="text-xs text-slate-500 mr-2">簽單折合台幣總計:</span>
             <span class="text-xl font-black text-red-700" id="totalTwdSum">NT$ 0</span>
           </div>
         </div>
@@ -470,31 +435,25 @@
         <div class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
           <label class="font-bold text-slate-800 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-green-700 text-white text-xs flex items-center justify-center font-bold">3</span>
-            <span>寫入格式與欄位偏好</span>
+            <span>寫入欄位順序與展開模式</span>
           </label>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 text-xs">
-            <div>
-              <span class="font-semibold text-slate-600 block mb-1">寫入語言：</span>
-              <select id="saveLangPreference" class="w-full p-2 rounded-lg border border-slate-300 bg-white font-medium">
-                <option value="current">遵循當前表頭所選語言 (中文/原文)</option>
-                <option value="zh">固定以繁體中文寫入</option>
-                <option value="original">固定以原文名稱寫入</option>
-                <option value="both">中英雙語並列寫入</option>
-              </select>
-            </div>
-            <div>
-              <span class="font-semibold text-slate-600 block mb-1">資料展開模式：</span>
-              <select id="saveExportMode" class="w-full p-2 rounded-lg border border-slate-300 bg-white font-medium">
-                <option value="items">商品明細逐項展開 (推薦，最詳細)</option>
-                <option value="receipts">每筆簽單一行 (商品合併摘要)</option>
-              </select>
-            </div>
+          <div class="p-2.5 bg-white rounded-lg border border-slate-200 text-xs text-slate-600 leading-relaxed">
+            <span class="font-bold text-slate-800">固定 14 欄順序：</span>
+            商店名稱 (中文) → 商店名稱 (原文) → 商品名稱 (中文) → 商品名稱 (原文) → 商品數量 → 商品價格 → 總金額 → 幣別 → 台幣金額 → 日期 → 時間 → 分類 → 購買人 (留白) → 匯率
+          </div>
+
+          <div class="pt-1 text-xs">
+            <span class="font-semibold text-slate-600 block mb-1">資料展開模式：</span>
+            <select id="saveExportMode" class="w-full p-2 rounded-lg border border-slate-300 bg-white font-medium">
+              <option value="items" selected>商品明細逐項展開 (推薦，每項商品獨立一列)</option>
+              <option value="receipts">每筆簽單一行 (商品合併摘要)</option>
+            </select>
           </div>
 
           <div class="flex items-center gap-2 pt-2 text-xs text-slate-600">
             <input type="checkbox" id="chkAutoHeader" checked class="rounded text-green-600 focus:ring-green-500">
-            <label for="chkAutoHeader">若目標工作表為空，自動加入標題列 (日期、時間、商店、商品、數量、金額、TWD...)</label>
+            <label for="chkAutoHeader">若目標工作表為空，自動於第一列加入 14 欄標準標題列</label>
           </div>
         </div>
 
@@ -533,9 +492,30 @@
 
   <!-- Main JavaScript Logic -->
   <script>
+    // 14 Standard Headers from Left to Right
+    const STANDARD_HEADERS = [
+      "商店名稱 (中文)",
+      "商店名稱 (原文)",
+      "商品名稱 (中文)",
+      "商品名稱 (原文)",
+      "商品數量",
+      "商品價格",
+      "總金額",
+      "幣別",
+      "台幣金額",
+      "日期",
+      "時間",
+      "分類",
+      "購買人",
+      "匯率"
+    ];
+
+    const ALLOWED_CATEGORIES = ["餐飲", "交通", "購物"];
+
     // Global State
     let classifiedData = [];
-    let exchangeRates = { USD: 32.5, JPY: 0.21, EUR: 35.2, CNY: 4.5, HKD: 4.15, KRW: 0.024, GBP: 41.5, TWD: 1.0 };
+    let exchangeRates = { USD: 32.5, JPY: 0.21, EUR: 35.2, CNY: 4.5, HKD: 4.15, KRW: 0.024, GBP: 41.5, THB: 0.95, TWD: 1.0 };
+    const historicalRateCache = {};
     let googleAccessToken = null;
     let driveSpreadsheets = [];
 
@@ -574,8 +554,6 @@
     const btnCancelError = document.getElementById('btnCancelError');
     const resultsSection = document.getElementById('resultsSection');
     const resultsTableBody = document.getElementById('resultsTableBody');
-    const headerStoreLangSelect = document.getElementById('headerStoreLangSelect');
-    const headerItemLangSelect = document.getElementById('headerItemLangSelect');
     const totalReceiptCount = document.getElementById('totalReceiptCount');
     const totalItemCount = document.getElementById('totalItemCount');
     const totalTwdSum = document.getElementById('totalTwdSum');
@@ -603,7 +581,6 @@
     const newWorksheetNameInput = document.getElementById('newWorksheetNameInput');
     const btnAutoDateTabName = document.getElementById('btnAutoDateTabName');
     const btnRefreshTabs = document.getElementById('btnRefreshTabs');
-    const saveLangPreference = document.getElementById('saveLangPreference');
     const saveExportMode = document.getElementById('saveExportMode');
     const chkAutoHeader = document.getElementById('chkAutoHeader');
     const modalStatusAlert = document.getElementById('modalStatusAlert');
@@ -642,7 +619,17 @@
       showToast('設定已成功儲存至瀏覽器！', 'success');
     }
 
-    // --- Exchange Rates Fetching ---
+    // Normalize category to strictly ["餐飲", "交通", "購物"]
+    function normalizeCategory(cat) {
+      if (!cat) return '購物';
+      const c = String(cat).trim();
+      if (ALLOWED_CATEGORIES.includes(c)) return c;
+      if (c.includes('餐') || c.includes('飲') || c.includes('食')) return '餐飲';
+      if (c.includes('交') || c.includes('車') || c.includes('運') || c.includes('機票') || c.includes('油')) return '交通';
+      return '購物';
+    }
+
+    // --- Latest & Historical Date Exchange Rates Fetching ---
     async function fetchLatestExchangeRates() {
       try {
         const res = await fetch('https://open.er-api.com/v6/latest/USD');
@@ -650,30 +637,151 @@
           const data = await res.json();
           if (data && data.rates && data.rates.TWD) {
             const usdToTwd = data.rates.TWD;
-            // Calculate rate relative to TWD
             for (const [curr, val] of Object.entries(data.rates)) {
-              exchangeRates[curr] = usdToTwd / val;
+              if (val > 0) exchangeRates[curr] = Number((usdToTwd / val).toFixed(4));
             }
             exchangeRates['TWD'] = 1.0;
-            rateStatusText.textContent = `即時匯率生效中 (USD/TWD: ${usdToTwd.toFixed(2)})`;
-            rateDetailText.textContent = '自動折算台幣';
+            rateStatusText.textContent = `依交易日期匯率換算 (最新 USD/TWD: ${usdToTwd.toFixed(2)})`;
+            rateDetailText.textContent = '外幣 vs 台幣';
             return;
           }
         }
       } catch (e) {
         console.warn('Could not fetch online exchange rates, using fallback rates', e);
       }
-      rateStatusText.textContent = '標準匯率生效中 (USD/TWD: 32.5)';
-      rateDetailText.textContent = '已依基準匯率換算';
+      rateStatusText.textContent = '依交易日期匯率換算 (備援匯率就緒)';
+      rateDetailText.textContent = '外幣 vs 台幣';
     }
 
-    // Convert any currency to TWD
-    function convertToTWD(amount, currency) {
-      if (!amount) return 0;
-      const curr = (currency || 'TWD').toUpperCase();
-      if (curr === 'TWD' || curr === 'NTD' || curr === 'NT$') return amount;
-      const rate = exchangeRates[curr] || exchangeRates['USD'] || 32.5;
-      return Math.round(amount * rate * 100) / 100;
+    // Fetch exchange rate (1 Foreign Currency -> TWD) on the receipt's specific date (YYYY-MM-DD)
+    async function fetchRateOnDate(currency, dateStr) {
+      const curr = (currency || 'TWD').toUpperCase().trim();
+      if (curr === 'TWD' || curr === 'NTD' || curr === 'NT$') {
+        return 1;
+      }
+
+      const cleanDate = (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr.trim())) ? dateStr.trim() : '';
+      const cacheKey = `${curr}_${cleanDate || 'latest'}`;
+      if (historicalRateCache[cacheKey]) {
+        return historicalRateCache[cacheKey];
+      }
+
+      const currLower = curr.toLowerCase();
+      const todayUtc = new Date().toISOString().slice(0, 10);
+      // Only query historical endpoint if date is not in the future
+      const urlsToTry = [];
+      if (cleanDate && cleanDate <= todayUtc) {
+        urlsToTry.push(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${cleanDate}/v1/currencies/${currLower}.json`);
+        urlsToTry.push(`https://${cleanDate}.currency-api.pages.dev/v1/currencies/${currLower}.json`);
+      }
+      urlsToTry.push(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${currLower}.json`);
+
+      for (const url of urlsToTry) {
+        try {
+          const res = await fetch(url);
+          if (res.ok) {
+            const data = await res.json();
+            const twdRate = data?.[currLower]?.twd;
+            if (typeof twdRate === 'number' && twdRate > 0) {
+              const rounded = Number(twdRate.toFixed(4));
+              historicalRateCache[cacheKey] = rounded;
+              return rounded;
+            }
+          }
+        } catch (err) {
+          // Try next fallback URL
+        }
+      }
+
+      const fallback = Number((exchangeRates[curr] || exchangeRates['USD'] || 32.5).toFixed(4));
+      historicalRateCache[cacheKey] = fallback;
+      return fallback;
+    }
+
+    // Enrich all receipts in classifiedData with date-specific exchangeRate and twdAmount
+    async function enrichReceiptsWithExchangeRates(receipts) {
+      if (!Array.isArray(receipts)) return;
+      await Promise.all(receipts.map(async (r) => {
+        r.category = normalizeCategory(r.category);
+        const rate = await fetchRateOnDate(r.currency, r.date);
+        r.exchangeRate = rate;
+        r.twdAmount = Math.round(Number(r.amount || 0) * rate * 100) / 100;
+      }));
+    }
+
+    // Build standardized 14-column rows from classifiedData
+    function buildStandardRows(data, mode = 'items') {
+      const rows = [];
+      data.forEach((receipt, rIdx) => {
+        const storeZh = receipt.merchant_zh || receipt.merchant_original || '';
+        const storeOrig = receipt.merchant_original || receipt.merchant_zh || '';
+        const currency = (receipt.currency || 'TWD').toUpperCase();
+        const rate = receipt.exchangeRate ?? (currency === 'TWD' ? 1 : (exchangeRates[currency] || 32.5));
+        const amount = Number(receipt.amount || 0);
+        const twdTotal = receipt.twdAmount ?? Math.round(amount * rate * 100) / 100;
+        const dateStr = receipt.date || '';
+        const timeStr = receipt.time || '';
+        const category = normalizeCategory(receipt.category);
+        const buyer = ''; // 購買人（留白）
+
+        if (mode === 'items' && receipt.lineItems && receipt.lineItems.length > 0) {
+          receipt.lineItems.forEach((li, lIdx) => {
+            const itemZh = li.name_zh || li.name_original || '';
+            const itemOrig = li.name_original || li.name_zh || '';
+            const qty = li.quantity ?? 1;
+            const price = Number(li.price ?? 0);
+            rows.push({
+              receiptIndex: rIdx,
+              itemIndex: lIdx,
+              isDiscount: price < 0,
+              cols: [
+                storeZh,      // 1. 商店名稱 (中文)
+                storeOrig,    // 2. 商店名稱 (原文)
+                itemZh,       // 3. 商品名稱 (中文)
+                itemOrig,     // 4. 商品名稱 (原文)
+                qty,          // 5. 商品數量
+                price,        // 6. 商品價格
+                amount,       // 7. 總金額
+                currency,     // 8. 幣別
+                twdTotal,     // 9. 台幣金額
+                dateStr,      // 10. 日期
+                timeStr,      // 11. 時間
+                category,     // 12. 分類
+                buyer,        // 13. 購買人 (留白)
+                rate          // 14. 匯率 (依日期當天外幣vs台幣)
+              ]
+            });
+          });
+        } else {
+          const itemZh = (receipt.lineItems || []).map(li => li.name_zh || li.name_original).filter(Boolean).join('、');
+          const itemOrig = (receipt.lineItems || []).map(li => li.name_original || li.name_zh).filter(Boolean).join(', ');
+          const totalQty = (receipt.lineItems && receipt.lineItems.length > 0)
+            ? receipt.lineItems.reduce((acc, li) => acc + (Number(li.quantity) || 1), 0)
+            : 1;
+          rows.push({
+            receiptIndex: rIdx,
+            itemIndex: null,
+            isDiscount: amount < 0,
+            cols: [
+              storeZh,      // 1. 商店名稱 (中文)
+              storeOrig,    // 2. 商店名稱 (原文)
+              itemZh,       // 3. 商品名稱 (中文)
+              itemOrig,     // 4. 商品名稱 (原文)
+              totalQty,     // 5. 商品數量
+              amount,       // 6. 商品價格
+              amount,       // 7. 總金額
+              currency,     // 8. 幣別
+              twdTotal,     // 9. 台幣金額
+              dateStr,      // 10. 日期
+              timeStr,      // 11. 時間
+              category,     // 12. 分類
+              buyer,        // 13. 購買人 (留白)
+              rate          // 14. 匯率 (依日期當天外幣vs台幣)
+            ]
+          });
+        }
+      });
+      return rows;
     }
 
     // --- Event Listeners Setup ---
@@ -757,10 +865,6 @@
 
       // Export CSV
       btnExportCsv.addEventListener('click', exportToCsv);
-
-      // Language Header Switchers (Turn 3 & Turn 4 requirements)
-      headerStoreLangSelect.addEventListener('change', () => renderResultsTable());
-      headerItemLangSelect.addEventListener('change', () => renderResultsTable());
 
       // Modal Open & Close
       btnOpenSaveToSheetsModal.addEventListener('click', openSheetsModal);
@@ -863,65 +967,61 @@
       showSection('error');
     }
 
-    // --- Demo Data (Turn 1 ~ Turn 5 完整特色展示) ---
-    function useDemoData() {
+    // --- Demo Data (展示 14 欄、餐飲/交通/購物分類與日期匯率) ---
+    async function useDemoData() {
       showSection('processing');
-      processingTitle.textContent = '正在載入精選範例資料...';
-      processingDetail.textContent = '包含中英對照商店、多項明細、折扣負數與匯率自動轉換...';
+      processingTitle.textContent = '正在載入精選範例資料與歷史當日匯率...';
+      processingDetail.textContent = '包含 14 欄標準順序、中英商店與商品名稱、負數折扣及依交易日期當天外幣匯率轉換...';
 
-      setTimeout(() => {
-        const todayStr = new Date().toISOString().slice(0, 10);
-        classifiedData = [
-          {
-            merchant_original: "STARBUCKS COFFEE ROASTERY",
-            merchant_zh: "星巴克臻選咖啡烘焙工坊",
-            amount: 22.75,
-            date: todayStr,
-            time: "08:45",
-            currency: "USD",
-            category: "餐飲",
-            lineItems: [
-              { name_original: "Grande Caffe Latte", name_zh: "大杯那堤咖啡", quantity: 1, price: 5.25 },
-              { name_original: "Butter Croissant", name_zh: "法式奶油可頌", quantity: 1, price: 3.50 },
-              { name_original: "Stainless Steel Tumbler", name_zh: "不鏽鋼隨行保溫杯", quantity: 1, price: 18.00 },
-              { name_original: "Morning Member Discount", name_zh: "早晨會員專屬折抵", quantity: 1, price: -4.00 } // Turn 5: 負數折扣
-            ]
-          },
-          {
-            merchant_original: "Bic Camera Shinjuku East",
-            merchant_zh: "必客家樂 新宿東口店",
-            amount: 28400,
-            date: todayStr,
-            time: "14:20",
-            currency: "JPY",
-            category: "購物",
-            lineItems: [
-              { name_original: "Wireless Noise Cancelling Headphones", name_zh: "無線抗噪耳機", quantity: 1, price: 29800 },
-              { name_original: "Tourist Tax-Free 10% Off", name_zh: "外國旅客免稅 10% 優惠", quantity: 1, price: -2700 }, // Turn 5: 負數免稅折抵
-              { name_original: "Type-C Fast Charging Cable", name_zh: "Type-C 疾速快充線", quantity: 1, price: 1300 }
-            ]
-          },
-          {
-            merchant_original: "Carrefour Market",
-            merchant_zh: "家樂福超市",
-            amount: 580,
-            date: todayStr,
-            time: "18:10",
-            currency: "TWD",
-            category: "日常開銷",
-            lineItems: [
-              { name_original: "Fresh Full Cream Milk 936ml", name_zh: "鮮乳坊鮮乳 936ml", quantity: 2, price: 210 },
-              { name_original: "Organic Eggs 10pcs", name_zh: "有機冷藏鮮雞蛋 10入", quantity: 1, price: 135 },
-              { name_original: "Japanese Apples 4pcs", name_zh: "日本進口青森蘋果 4入", quantity: 1, price: 285 },
-              { name_original: "VIP Points Coupon", name_zh: "會員紅利點數現金折價券", quantity: 1, price: -50 } // Turn 5: 負數折價券
-            ]
-          }
-        ];
+      const sampleData = [
+        {
+          merchant_original: "STARBUCKS COFFEE ROASTERY",
+          merchant_zh: "星巴克臻選咖啡烘焙工坊",
+          amount: 22.75,
+          date: "2025-10-12",
+          time: "08:45",
+          currency: "USD",
+          category: "餐飲",
+          lineItems: [
+            { name_original: "Grande Caffe Latte", name_zh: "大杯那堤咖啡", quantity: 1, price: 5.25 },
+            { name_original: "Butter Croissant", name_zh: "法式奶油可頌", quantity: 1, price: 3.50 },
+            { name_original: "Stainless Steel Tumbler", name_zh: "不鏽鋼隨行保溫杯", quantity: 1, price: 18.00 },
+            { name_original: "Morning Member Discount", name_zh: "早晨會員專屬折抵", quantity: 1, price: -4.00 }
+          ]
+        },
+        {
+          merchant_original: "Bic Camera Shinjuku East",
+          merchant_zh: "必客家樂 新宿東口店",
+          amount: 28400,
+          date: "2025-10-13",
+          time: "14:20",
+          currency: "JPY",
+          category: "購物",
+          lineItems: [
+            { name_original: "Wireless Noise Cancelling Headphones", name_zh: "無線抗噪耳機", quantity: 1, price: 29800 },
+            { name_original: "Tourist Tax-Free 10% Off", name_zh: "外國旅客免稅 10% 優惠", quantity: 1, price: -2700 },
+            { name_original: "Type-C Fast Charging Cable", name_zh: "Type-C 疾速快充線", quantity: 1, price: 1300 }
+          ]
+        },
+        {
+          merchant_original: "UBER TRIP",
+          merchant_zh: "優步叫車 (Uber)",
+          amount: 25.50,
+          date: "2025-10-14",
+          time: "21:15",
+          currency: "USD",
+          category: "交通",
+          lineItems: [
+            { name_original: "Airport Express Ride", name_zh: "機場快線乘車車資", quantity: 1, price: 25.50 }
+          ]
+        }
+      ];
 
-        renderResultsTable();
-        showSection('results');
-        showToast('範例簽單與收據已成功載入！', 'success');
-      }, 700);
+      await enrichReceiptsWithExchangeRates(sampleData);
+      classifiedData = sampleData;
+      renderResultsTable();
+      showSection('results');
+      showToast('範例資料已載入並完成消費當日匯率換算！', 'success');
     }
 
     // --- Gemini API Call ---
@@ -936,15 +1036,15 @@
 
       const prompt = `你是一個專業且極為細心的發票、收據、信用卡簽單光學辨識 (OCR) 與財務分析專家。
 請針對這張上傳的圖片進行深度文字辨識與結構化萃取，嚴格遵循以下要求：
-1. 【商店名稱】：請提取商戶/商店名稱，並同時提供其「原始名稱」(merchant_original) 以及翻譯後的「繁體中文名稱」(merchant_zh)。若原本就是繁體中文，兩者可相同。
-2. 【交易日期與時間】：提取交易日期 (date，格式請標準化為 YYYY-MM-DD) 與交易時間 (time，格式 HH:MM)。若找不到時間可留空字串。
+1. 【商店名稱】：請提取商戶/商店名稱，並同時提供「繁體中文名稱」(merchant_zh) 與「原始名稱」(merchant_original)。若原本就是繁體中文，可將 merchant_original 保留原名或譯為英文名稱。
+2. 【商品明細 (lineItems)】：
+   - 請盡可能完整提取簽單上所有購買品項清單；若簽單上無細項，也請建立至少 1 筆代表此交易的品項。
+   - 每個商品請同時提供「繁體中文名稱」(name_zh) 與「原始名稱」(name_original)。
+   - 提取商品「數量」(quantity，預設為 1) 與該項「商品價格」(price)。
+   - ★【特別重要規則 - 折扣負數】：若品項為「折扣」、「折讓」、「優惠券」、「點數折抵」、「Discount / Voucher」等優惠項目，請將其價格 (price) 記錄為「負數」(例如 -50, -10.5)！
 3. 【總金額與幣別】：提取簽單上的交易總金額 (amount，純數字) 與幣別代碼 (currency，例如 TWD, USD, JPY, EUR, CNY, HKD, KRW 等)。
-4. 【商品明細 (lineItems)】：
-   - 請盡可能完整提取簽單上所有購買品項清單。
-   - 每個商品請提取「原始名稱」(name_original) 與「繁體中文名稱」(name_zh)。
-   - 提取商品「數量」(quantity，預設為 1) 與該項「價格/金額」(price)。
-   - ★【特別重要規則 - 折扣負數】：若品項為「折扣」、「折讓」、「優惠券」、「點數折抵」、「Promotion / Discount / Voucher」等優惠項目，請將其價格 (price) 記錄為「負數」(例如 -50, -10.5)，並在名稱清楚標示！
-5. 【交易分類 (category)】：將此筆交易歸類至下列其中之一：["餐飲", "交通", "住宿", "購物", "日常開銷", "其他"]。
+4. 【交易日期與時間】：提取交易日期 (date，格式請標準化為 YYYY-MM-DD) 與交易時間 (time，格式 HH:MM)。若找不到時間可留空字串。
+5. 【交易分類 (category)】：請將此筆交易簡單分類歸納至下列三類其中之一：["餐飲", "交通", "購物"]（所有飲食餐廳歸為「餐飲」；車資、加油、停車、機票大眾運輸歸為「交通」；其餘百貨、超市、日用品、服飾、3C與一般消費統一歸為「購物」）。
 6. 請嚴格依照所指定的 JSON Schema 格式輸出一個包含所有識別項目的陣列 (ARRAY)。如果圖片無法辨識出任何有效收據資料，請輸出空陣列 []。`;
 
       const base64Data = dataUrl.split(',')[1];
@@ -969,16 +1069,16 @@
             items: {
               type: "OBJECT",
               properties: {
-                merchant_original: { type: "STRING", description: "商店/商戶原始名稱" },
-                merchant_zh: { type: "STRING", description: "商店/商戶繁體中文名稱" },
-                amount: { type: "NUMBER", description: "交易總金額" },
+                merchant_zh: { type: "STRING", description: "商店名稱 (中文)" },
+                merchant_original: { type: "STRING", description: "商店名稱 (原文)" },
+                amount: { type: "NUMBER", description: "總金額" },
+                currency: { type: "STRING", description: "幣別代碼" },
                 date: { type: "STRING", description: "交易日期 (YYYY-MM-DD)" },
                 time: { type: "STRING", description: "交易時間 (HH:MM)" },
-                currency: { type: "STRING", description: "幣別代碼" },
                 category: {
                   type: "STRING",
-                  description: "分類",
-                  enum: ["餐飲", "交通", "住宿", "購物", "日常開銷", "其他"]
+                  description: "簡單分類：餐飲、交通、購物",
+                  enum: ["餐飲", "交通", "購物"]
                 },
                 lineItems: {
                   type: "ARRAY",
@@ -986,16 +1086,16 @@
                   items: {
                     type: "OBJECT",
                     properties: {
-                      name_original: { type: "STRING", description: "商品原始名稱" },
-                      name_zh: { type: "STRING", description: "商品繁體中文名稱" },
-                      quantity: { type: "NUMBER", description: "數量" },
-                      price: { type: "NUMBER", description: "金額，若是折扣項目請填為負數" }
+                      name_zh: { type: "STRING", description: "商品名稱 (中文)" },
+                      name_original: { type: "STRING", description: "商品名稱 (原文)" },
+                      quantity: { type: "NUMBER", description: "商品數量" },
+                      price: { type: "NUMBER", description: "商品價格，若是折扣項目請填為負數" }
                     },
-                    required: ["name_original", "name_zh", "quantity", "price"]
+                    required: ["name_zh", "name_original", "quantity", "price"]
                   }
                 }
               },
-              required: ["merchant_original", "merchant_zh", "amount", "date", "currency", "category"]
+              required: ["merchant_zh", "merchant_original", "amount", "currency", "date", "category", "lineItems"]
             }
           }
         }
@@ -1028,169 +1128,134 @@
         throw new Error('未能在簽單上辨識出交易項目，請確認圖片是否清晰。');
       }
 
+      processingDetail.textContent = '正在查詢交易日期當天之外幣對台幣匯率...';
+      await enrichReceiptsWithExchangeRates(parsed);
+
       classifiedData = parsed;
       renderResultsTable();
       showSection('results');
-      showToast('AI 辨識完成！已自動換算台幣', 'success');
+      showToast('AI 辨識完成！已依消費日期匯率換算台幣', 'success');
     }
 
-    // --- Render Results Table ---
+    // --- Render Results Table (14 Columns from Left to Right) ---
     function renderResultsTable() {
       resultsTableBody.innerHTML = '';
 
-      const storeLang = headerStoreLangSelect.value; // 'zh' or 'original'
-      const itemLang = headerItemLangSelect.value;   // 'zh' or 'original'
-
-      let totalItems = 0;
+      const standardRows = buildStandardRows(classifiedData, 'items');
       let sumTwd = 0;
+      classifiedData.forEach(r => {
+        sumTwd += Number(r.twdAmount || 0);
+      });
 
-      classifiedData.forEach((item, index) => {
-        // Store Name based on header selector
-        const storeName = (storeLang === 'zh' ? (item.merchant_zh || item.merchant_original) : (item.merchant_original || item.merchant_zh)) || '未具名商店';
-        const twdAmount = convertToTWD(item.amount, item.currency);
-        sumTwd += twdAmount;
+      standardRows.forEach((rowObj) => {
+        const [
+          storeZh,    // 0: 商店名稱 (中文)
+          storeOrig,  // 1: 商店名稱 (原文)
+          itemZh,     // 2: 商品名稱 (中文)
+          itemOrig,   // 3: 商品名稱 (原文)
+          qty,        // 4: 商品數量
+          price,      // 5: 商品價格
+          amount,     // 6: 總金額
+          currency,   // 7: 幣別
+          twdTotal,   // 8: 台幣金額
+          dateStr,    // 9: 日期
+          timeStr,    // 10: 時間
+          category,   // 11: 分類
+          buyer,      // 12: 購買人 (留白)
+          rate        // 13: 匯率
+        ] = rowObj.cols;
 
-        const row = document.createElement('tr');
-        row.className = "hover:bg-red-50/40 transition-colors";
+        const isDiscount = rowObj.isDiscount;
+        const tr = document.createElement('tr');
+        tr.className = `hover:bg-red-50/40 transition-colors ${isDiscount ? 'bg-red-50/30' : ''}`;
 
-        // Line items HTML with discount negative highlighting (Turn 5)
-        let lineItemsHtml = '';
-        if (item.lineItems && item.lineItems.length > 0) {
-          totalItems += item.lineItems.length;
-          lineItemsHtml = `
-            <ul class="mt-2 space-y-1.5 border-t border-slate-100 pt-1.5">
-              ${item.lineItems.map(li => {
-                const itemName = (itemLang === 'zh' ? (li.name_zh || li.name_original) : (li.name_original || li.name_zh)) || '商品明細';
-                const isDiscount = (li.price < 0);
-                return `
-                  <li class="flex items-center justify-between text-xs gap-3 ${isDiscount ? 'text-red-600 font-semibold bg-red-50/80 px-2 py-0.5 rounded border border-red-200' : 'text-slate-600'}">
-                    <span class="flex items-center gap-1.5">
-                      ${isDiscount ? '<i class="fa-solid fa-tag text-[10px]"></i>' : '<span class="text-slate-300">•</span>'}
-                      <span>${itemName}</span>
-                      <span class="text-slate-400 font-normal">x ${li.quantity || 1}</span>
-                    </span>
-                    <span class="tabular-nums font-medium ${isDiscount ? 'text-red-700' : 'text-slate-700'}">
-                      ${isDiscount ? '' : ''}${item.currency} ${Number(li.price).toFixed(2)}
-                    </span>
-                  </li>
-                `;
-              }).join('')}
-            </ul>
-          `;
-        } else {
-          totalItems += 1;
-        }
-
-        row.innerHTML = `
-          <!-- Store Name -->
-          <td class="px-4 py-3.5 align-top">
-            <div class="font-bold text-slate-900">${escapeHtml(storeName)}</div>
-            <div class="text-[11px] text-slate-400 mt-0.5">
-              ${storeLang === 'zh' ? (item.merchant_original ? escapeHtml(item.merchant_original) : '') : (item.merchant_zh ? escapeHtml(item.merchant_zh) : '')}
-            </div>
+        tr.innerHTML = `
+          <!-- 1. 商店名稱 (中文) -->
+          <td class="px-3 py-3 align-middle font-bold text-slate-900 whitespace-nowrap">${escapeHtml(storeZh)}</td>
+          <!-- 2. 商店名稱 (原文) -->
+          <td class="px-3 py-3 align-middle text-slate-600 whitespace-nowrap">${escapeHtml(storeOrig)}</td>
+          <!-- 3. 商品名稱 (中文) -->
+          <td class="px-3 py-3 align-middle font-medium ${isDiscount ? 'text-red-600 font-bold' : 'text-slate-800'} whitespace-nowrap">
+            ${isDiscount ? '<i class="fa-solid fa-tag text-[10px] mr-1"></i>' : ''}${escapeHtml(itemZh)}
           </td>
-
-          <!-- Items Detail -->
-          <td class="px-4 py-3.5 align-top min-w-[260px]">
-            <div class="text-xs font-semibold text-slate-700 flex items-center justify-between">
-              <span>明細列表 (${item.lineItems ? item.lineItems.length : 1} 項)</span>
-            </div>
-            ${lineItemsHtml}
+          <!-- 4. 商品名稱 (原文) -->
+          <td class="px-3 py-3 align-middle ${isDiscount ? 'text-red-500' : 'text-slate-500'} whitespace-nowrap">${escapeHtml(itemOrig)}</td>
+          <!-- 5. 商品數量 -->
+          <td class="px-3 py-3 align-middle text-right tabular-nums text-slate-700 whitespace-nowrap">${qty}</td>
+          <!-- 6. 商品價格 -->
+          <td class="px-3 py-3 align-middle text-right tabular-nums font-semibold ${isDiscount ? 'text-red-600' : 'text-slate-800'} whitespace-nowrap">
+            ${Number(price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </td>
-
-          <!-- Original Currency Amount -->
-          <td class="px-4 py-3.5 align-top whitespace-nowrap font-semibold text-slate-800 tabular-nums">
-            ${item.currency} ${Number(item.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          <!-- 7. 總金額 -->
+          <td class="px-3 py-3 align-middle text-right tabular-nums font-semibold text-slate-800 whitespace-nowrap">
+            ${Number(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </td>
-
-          <!-- TWD Converted Amount -->
-          <td class="px-4 py-3.5 align-top whitespace-nowrap font-bold text-red-700 tabular-nums">
-            NT$ ${twdAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          <!-- 8. 幣別 -->
+          <td class="px-3 py-3 align-middle text-center font-semibold text-slate-700 whitespace-nowrap">${escapeHtml(currency)}</td>
+          <!-- 9. 台幣金額 -->
+          <td class="px-3 py-3 align-middle text-right tabular-nums font-bold text-red-700 whitespace-nowrap">
+            NT$ ${Number(twdTotal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </td>
-
-          <!-- Date & Time -->
-          <td class="px-4 py-3.5 align-top whitespace-nowrap text-xs text-slate-600">
-            <div class="font-medium text-slate-800">${item.date || '-'}</div>
-            <div class="text-[11px] text-slate-400">${item.time || ''}</div>
+          <!-- 10. 日期 -->
+          <td class="px-3 py-3 align-middle whitespace-nowrap text-slate-700 tabular-nums">${escapeHtml(dateStr)}</td>
+          <!-- 11. 時間 -->
+          <td class="px-3 py-3 align-middle whitespace-nowrap text-slate-500 tabular-nums">${escapeHtml(timeStr)}</td>
+          <!-- 12. 分類 -->
+          <td class="px-3 py-3 align-middle text-center whitespace-nowrap">
+            <span class="badge category-${category}">${escapeHtml(category)}</span>
           </td>
-
-          <!-- Category Badge -->
-          <td class="px-4 py-3.5 align-top whitespace-nowrap">
-            <span class="badge category-${item.category || '其他'}">${item.category || '其他'}</span>
-          </td>
-
-          <!-- Actions -->
-          <td class="px-4 py-3.5 align-top text-center whitespace-nowrap">
-            <button onclick="deleteReceiptRow(${index})" class="text-slate-400 hover:text-red-600 p-1.5 rounded-lg transition" title="刪除此筆">
+          <!-- 13. 購買人 (留白) -->
+          <td class="px-3 py-3 align-middle text-center text-slate-300 whitespace-nowrap">${escapeHtml(buyer)}</td>
+          <!-- 14. 匯率 -->
+          <td class="px-3 py-3 align-middle text-right tabular-nums text-slate-600 whitespace-nowrap">${rate}</td>
+          <!-- 操作 -->
+          <td class="px-3 py-3 align-middle text-center whitespace-nowrap">
+            <button onclick="deleteTableRow(${rowObj.receiptIndex}, ${rowObj.itemIndex})" class="text-slate-400 hover:text-red-600 p-1.5 rounded-lg transition" title="刪除此列">
               <i class="fa-regular fa-trash-can"></i>
             </button>
           </td>
         `;
 
-        resultsTableBody.appendChild(row);
+        resultsTableBody.appendChild(tr);
       });
 
       totalReceiptCount.textContent = classifiedData.length;
-      totalItemCount.textContent = totalItems;
+      totalItemCount.textContent = standardRows.length;
       totalTwdSum.textContent = `NT$ ${sumTwd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
 
-    // Delete single row
-    window.deleteReceiptRow = function(index) {
-      if (confirm('確定要移除此筆簽單紀錄嗎？')) {
-        classifiedData.splice(index, 1);
-        if (classifiedData.length === 0) {
-          showSection('upload');
-        } else {
-          renderResultsTable();
-        }
+    // Delete single item row or receipt
+    window.deleteTableRow = function(receiptIdx, itemIdx) {
+      if (!confirm('確定要移除此筆明細紀錄嗎？')) return;
+      const receipt = classifiedData[receiptIdx];
+      if (receipt && itemIdx !== null && Array.isArray(receipt.lineItems) && receipt.lineItems.length > 1) {
+        receipt.lineItems.splice(itemIdx, 1);
+      } else {
+        classifiedData.splice(receiptIdx, 1);
+      }
+      if (classifiedData.length === 0) {
+        showSection('upload');
+      } else {
+        renderResultsTable();
       }
     };
 
-    // --- CSV Export Function ---
+    // --- CSV Export Function (Exact 14 Columns) ---
     function exportToCsv() {
       if (!classifiedData || classifiedData.length === 0) return;
 
-      const headers = ['商店名稱(中文)', '商店名稱(原文)', '商品名稱(中文)', '商品名稱(原文)', '商品數量', '商品單價/小計', '原幣總金額', '幣別', '折合台幣(TWD)', '日期', '時間', '分類'];
-      const csvRows = [headers.join(',')];
+      const standardRows = buildStandardRows(classifiedData, 'items');
+      const csvRows = [STANDARD_HEADERS.join(',')];
 
-      for (const row of classifiedData) {
-        const twd = convertToTWD(row.amount, row.currency);
-        if (row.lineItems && row.lineItems.length > 0) {
-          for (const li of row.lineItems) {
-            const vals = [
-              `"${(row.merchant_zh || '').replace(/"/g, '""')}"`,
-              `"${(row.merchant_original || '').replace(/"/g, '""')}"`,
-              `"${(li.name_zh || '').replace(/"/g, '""')}"`,
-              `"${(li.name_original || '').replace(/"/g, '""')}"`,
-              li.quantity || 1,
-              li.price,
-              row.amount,
-              row.currency,
-              twd,
-              `"${row.date || ''}"`,
-              `"${row.time || ''}"`,
-              `"${row.category || ''}"`
-            ];
-            csvRows.push(vals.join(','));
+      for (const rowObj of standardRows) {
+        const formattedCols = rowObj.cols.map((val, idx) => {
+          // Numeric columns: 4 (商品數量), 5 (商品價格), 6 (總金額), 8 (台幣金額), 13 (匯率)
+          if ([4, 5, 6, 8, 13].includes(idx)) {
+            return val ?? '';
           }
-        } else {
-          const vals = [
-            `"${(row.merchant_zh || '').replace(/"/g, '""')}"`,
-            `"${(row.merchant_original || '').replace(/"/g, '""')}"`,
-            `""`,
-            `""`,
-            `1`,
-            row.amount,
-            row.amount,
-            row.currency,
-            twd,
-            `"${row.date || ''}"`,
-            `"${row.time || ''}"`,
-            `"${row.category || ''}"`
-          ];
-          csvRows.push(vals.join(','));
-        }
+          return `"${String(val ?? '').replace(/"/g, '""')}"`;
+        });
+        csvRows.push(formattedCols.join(','));
       }
 
       const csvContent = '\uFEFF' + csvRows.join('\r\n');
@@ -1204,7 +1269,7 @@
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      showToast('已匯出 CSV 檔案！', 'success');
+      showToast('已依 14 欄標準順序匯出 CSV 檔案！', 'success');
     }
 
     // =========================================================================
@@ -1275,7 +1340,6 @@
             opt.textContent = `${file.name}`;
             targetSpreadsheetSelect.appendChild(opt);
           });
-          // Automatically fetch sheets for the first spreadsheet
           fetchSpreadsheetSheets(driveSpreadsheets[0].id);
         }
       } catch (err) {
@@ -1309,7 +1373,6 @@
             targetWorksheetSelect.appendChild(opt);
           });
 
-          // Add New Sheet Option
           const newOpt = document.createElement('option');
           newOpt.value = '__NEW__';
           newOpt.textContent = '＋ 建立新工作表分頁...';
@@ -1408,7 +1471,6 @@
         showToast(`新試算表「${title}」已成功建立！`, 'success');
         hideModalStatus();
 
-        // Switch to this new spreadsheet
         localStorage.setItem('last_spreadsheet_id', newId);
         await loadDriveSpreadsheets();
         targetSpreadsheetSelect.value = newId;
@@ -1425,7 +1487,6 @@
         return;
       }
 
-      // Pre-fill last used spreadsheet ID
       const lastId = localStorage.getItem('last_spreadsheet_id');
       if (lastId && targetSpreadsheetInput) targetSpreadsheetInput.value = lastId;
 
@@ -1438,7 +1499,6 @@
       if (googleAccessToken) {
         loadDriveSpreadsheets();
       } else {
-        // If not logged in, prompt gently
         const savedClientId = localStorage.getItem('google_client_id');
         if (savedClientId) {
           targetSpreadsheetSelect.innerHTML = '<option value="">點擊左上「登入 Google」以載入清單，或切換至「貼上網址/ID」</option>';
@@ -1474,7 +1534,7 @@
       modalStatusAlert.classList.add('hidden');
     }
 
-    // --- Core Action: Execute Save Data to Google Sheets ---
+    // --- Core Action: Execute Save Data to Google Sheets (Exact 14 Columns) ---
     async function executeSaveToSheets() {
       const spreadsheetId = getSelectedSpreadsheetId();
       if (!spreadsheetId) {
@@ -1482,7 +1542,6 @@
         return;
       }
 
-      // Determine Worksheet Name
       let worksheetName = targetWorksheetSelect.value;
       if (worksheetName === '__NEW__') {
         worksheetName = newWorksheetNameInput.value.trim();
@@ -1498,90 +1557,20 @@
 
       btnExecuteSaveToSheets.disabled = true;
       btnExecuteText.textContent = '正在轉存寫入中...';
-      showModalStatus(`正在連線並將資料寫入工作表「${worksheetName}」...`, 'info');
+      showModalStatus(`正在連線並將 14 欄資料寫入工作表「${worksheetName}」...`, 'info');
 
-      // Prepare payload data rows
-      const langPref = saveLangPreference.value; // 'current', 'zh', 'original', 'both'
-      const exportMode = saveExportMode.value;    // 'items' or 'receipts'
-      const storeCurrentLang = headerStoreLangSelect.value;
-      const itemCurrentLang = headerItemLangSelect.value;
-
-      const headerRow = [
-        "日期", "時間", "商店名稱", "商品品項", "數量", "單價/金額", "原幣總額", "幣別", "折合台幣 (TWD)", "分類", "備註/標籤"
-      ];
-
-      const dataRows = [];
-
-      for (const row of classifiedData) {
-        // Resolve Store Name
-        let storeName = "";
-        if (langPref === 'zh') storeName = row.merchant_zh || row.merchant_original;
-        else if (langPref === 'original') storeName = row.merchant_original || row.merchant_zh;
-        else if (langPref === 'both') storeName = `${row.merchant_zh || ''} (${row.merchant_original || ''})`.trim();
-        else storeName = (storeCurrentLang === 'zh') ? (row.merchant_zh || row.merchant_original) : (row.merchant_original || row.merchant_zh);
-
-        const twd = convertToTWD(row.amount, row.currency);
-
-        if (exportMode === 'items' && row.lineItems && row.lineItems.length > 0) {
-          for (const li of row.lineItems) {
-            let itemName = "";
-            if (langPref === 'zh') itemName = li.name_zh || li.name_original;
-            else if (langPref === 'original') itemName = li.name_original || li.name_zh;
-            else if (langPref === 'both') itemName = `${li.name_zh || ''} (${li.name_original || ''})`.trim();
-            else itemName = (itemCurrentLang === 'zh') ? (li.name_zh || li.name_original) : (li.name_original || li.name_zh);
-
-            const isDiscount = (li.price < 0);
-            const note = isDiscount ? "折扣折讓" : "";
-
-            dataRows.push([
-              row.date || "",
-              row.time || "",
-              storeName,
-              itemName,
-              li.quantity || 1,
-              li.price,
-              row.amount,
-              row.currency,
-              twd,
-              row.category || "",
-              note
-            ]);
-          }
-        } else {
-          // One row per receipt
-          const itemsSummary = (row.lineItems || []).map(li => {
-            const name = (langPref === 'zh' ? li.name_zh : li.name_original) || li.name_zh;
-            return `${name} x${li.quantity || 1} (${li.price})`;
-          }).join('; ');
-
-          dataRows.push([
-            row.date || "",
-            row.time || "",
-            storeName,
-            itemsSummary || "無品項明細",
-            (row.lineItems ? row.lineItems.length : 1),
-            row.amount,
-            row.amount,
-            row.currency,
-            twd,
-            row.category || "",
-            ""
-          ]);
-        }
-      }
+      const exportMode = saveExportMode.value || 'items';
+      const headerRow = [...STANDARD_HEADERS];
+      const dataRows = buildStandardRows(classifiedData, exportMode).map(r => r.cols);
 
       try {
-        // Strategy 1: Google OAuth Sheets API v4
         if (googleAccessToken) {
           await writeDataViaSheetsApi(spreadsheetId, worksheetName, headerRow, dataRows);
-        }
-        // Strategy 2: Google Apps Script Webhook
-        else {
+        } else {
           const gasUrl = gasWebhookUrlInput.value.trim() || localStorage.getItem('gas_webhook_url');
           if (gasUrl) {
             await writeDataViaGAS(gasUrl, spreadsheetId, worksheetName, headerRow, dataRows);
           } else {
-            // Neither is configured -> prompt Google login
             throw new Error('尚未連線 Google 帳號！請先點擊「登入 Google」或於設定中輸入 Apps Script 網址。');
           }
         }
@@ -1605,7 +1594,6 @@
 
     // Write data using Google Sheets API v4
     async function writeDataViaSheetsApi(spreadsheetId, worksheetName, headerRow, dataRows) {
-      // 1. Check if sheet exists or create new tab if requested
       const metaRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties`, {
         headers: { 'Authorization': `Bearer ${googleAccessToken}` }
       });
@@ -1615,7 +1603,6 @@
       const existingSheets = (metaData.sheets || []).map(s => s.properties.title);
 
       if (!existingSheets.includes(worksheetName)) {
-        // Add new sheet tab via batchUpdate
         const addSheetRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`, {
           method: 'POST',
           headers: {
@@ -1635,11 +1622,10 @@
         if (!addSheetRes.ok) throw new Error(`建立工作表分頁「${worksheetName}」失敗`);
       }
 
-      // 2. Check if the sheet already has data (for header insertion)
       let needsHeader = false;
       if (chkAutoHeader.checked) {
         try {
-          const checkRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(worksheetName)}!A1:D1`, {
+          const checkRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(worksheetName)}!A1:N1`, {
             headers: { 'Authorization': `Bearer ${googleAccessToken}` }
           });
           if (checkRes.ok) {
@@ -1655,7 +1641,6 @@
 
       const rowsToWrite = needsHeader ? [headerRow, ...dataRows] : dataRows;
 
-      // 3. Append rows
       const appendRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(worksheetName)}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`, {
         method: 'POST',
         headers: {
