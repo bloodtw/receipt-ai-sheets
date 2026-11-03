@@ -35,7 +35,7 @@
 2. **設定 Gemini API Key**：
    - 點擊右上角 **「API & 試算表設定」**。
    - 填入您的 Google Gemini API Key（可前往 [Google AI Studio](https://aistudio.google.com/apikey) 免費獲取）。
-   - 預設推薦模型為 `gemini-3.1-flash-lite`（最新超低延遲首選，高性價比 & 極速辨識），並支援切換至成熟穩定的 `gemini-2.5-flash`。
+   - 系統固定採用最新超低延遲模型 `gemini-3.1-flash-lite`（高性價比 & 極速辨識）。
    - 💡 如果手邊暫時沒有 API Key，可直接在畫面上點選 **「載入完整範例資料 (免金鑰體驗)」**。
 3. **上傳並轉存 Google 試算表**：
    - 點擊上傳或拖曳簽單圖片 / PDF 檔案。
